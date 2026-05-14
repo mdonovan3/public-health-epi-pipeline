@@ -1,0 +1,5 @@
+measure_id,measure,category,short_question_text
+# TODO: populate with CDC PLACES measure reference
+# Get from first run: SELECT DISTINCT measure_id, measure, category, short_question_text FROM raw.places_county
+# Key measures to confirm are present:
+#   OBESITY, DIABETES, CSMOKING, BPHIGH, CHOLSCREEN, CANCER, COPD, CHD, STROKE, DEPRESSION

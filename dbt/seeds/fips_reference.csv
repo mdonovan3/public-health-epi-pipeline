@@ -1,0 +1,5 @@
+state_fips,county_fips,state_abbr,state_name,county_name
+# TODO: populate with FIPS reference data
+# Download from: https://www.census.gov/library/reference/code-lists/ansi.html
+# Or use the tigris R package: tigris::fips_codes
+# This seed gives dbt a clean reference for FIPS validation and state/county name lookup

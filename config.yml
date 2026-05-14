@@ -1,0 +1,45 @@
+# Project-wide environment config — uses R `config` package
+# Switch by setting R_CONFIG_ACTIVE=production in .Renviron or shell
+# Same RDS server for local and prod — just different behavior for file source
+
+default:
+  env: "local"
+
+  db:
+    host: "lhrc-db.ctzgidhxuwis.us-east-1.rds.amazonaws.com"
+    port: 5432
+    dbname: "epi_pipeline"    # TODO: CREATE DATABASE epi_pipeline on lhrc-db server
+    user: "inventory"
+    # password from .Renviron: DB_PASSWORD_EPI=...
+
+  data:
+    source: "local"            # "local" reads from data/raw/ directory
+    raw_dir: "data/raw"        # drop CSVs here to trigger pipeline
+
+  dbt:
+    target: "dev"
+
+  cron:
+    enabled: false
+
+production:
+  env: "production"
+
+  db:
+    host: "lhrc-db.ctzgidhxuwis.us-east-1.rds.amazonaws.com"
+    port: 5432
+    dbname: "epi_pipeline"
+    user: "inventory"
+    # password from .Renviron on EC2
+
+  data:
+    source: "s3"
+    bucket: "TODO_BUCKET_NAME"   # TODO: fill in S3 bucket for raw data files
+    prefix: "raw/"
+
+  dbt:
+    target: "prod"
+
+  cron:
+    enabled: true
+    poll_interval_minutes: 60

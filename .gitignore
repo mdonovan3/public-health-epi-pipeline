@@ -1,0 +1,40 @@
+# Secrets and credentials
+.env
+.Renviron
+secrets.R
+
+# dbt profiles (contains DB host/credentials)
+dbt/profiles.yml
+
+# Raw data files (too large for git, drop in manually)
+data/raw/
+data/sample/
+
+# dbt build artifacts
+dbt/target/
+dbt/dbt_packages/
+
+# Quarto output
+quarto/_site/
+quarto/*.html
+quarto/*.pdf
+
+# R session
+.Rhistory
+.RData
+.Rproj.user/
+
+# Shiny deployment metadata
+rsconnect/
+
+# DuckDB files
+*.duckdb
+*.duckdb.wal
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+nohup.out

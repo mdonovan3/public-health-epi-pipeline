@@ -1,0 +1,136 @@
+---
+title: "County-Level Chronic Disease and Air Quality Analysis"
+subtitle: "CDC PLACES + EPA PM2.5 — Reproducible Pipeline Demo"
+author: "Martin Donovan"
+date: today
+format:
+  html:
+    toc: true
+    toc-depth: 2
+    theme: flatly
+    self-contained: true
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+```{r setup}
+library(DBI)
+library(RPostgres)
+library(tidyverse)
+library(gt)
+library(config)
+
+cfg <- config::get()
+
+con <- dbConnect(
+  RPostgres::Postgres(),
+  host     = cfg$db$host,
+  port     = cfg$db$port,
+  dbname   = cfg$db$dbname,
+  user     = cfg$db$user,
+  password = Sys.getenv("DB_PASSWORD_EPI")
+)
+
+# Load mart — all analysis draws from here
+mart <- dbGetQuery(con, "SELECT * FROM marts.mart_epi_analysis")
+dbDisconnect(con)
+```
+
+## Overview
+
+This report summarizes county-level chronic disease prevalence (CDC PLACES) and
+ambient PM2.5 air quality (EPA AQS) across the United States. Data flows from raw
+public sources through a dbt transformation pipeline to produce the analysis table
+underlying this report.
+
+**Data sources:**
+
+- CDC PLACES County Data — chronic disease and behavioral risk factor prevalence
+- EPA AirData Annual PM2.5 Summary — ambient fine particulate matter by monitoring station
+
+**Pipeline:** Raw CSV → R ingestion → PostgreSQL raw schema → dbt staging/intermediate/mart → this report
+
+---
+
+## Data Summary
+
+```{r summary-table}
+# TODO: build a gt summary table showing:
+# - Number of counties covered
+# - Year range
+# - % counties with PM2.5 data
+# - Key measures available
+
+# Placeholder
+mart %>%
+  summarise(
+    counties = n_distinct(county_fips),
+    states = n_distinct(state_abbr),
+    years = paste(min(year, na.rm=TRUE), max(year, na.rm=TRUE), sep="-"),
+    pct_with_pm25 = round(mean(!missing_pm25, na.rm=TRUE) * 100, 1)
+  ) %>%
+  gt() %>%
+  cols_label(
+    counties = "Counties",
+    states = "States",
+    years = "Years",
+    pct_with_pm25 = "% with PM2.5 data"
+  )
+```
+
+---
+
+## Chronic Disease Prevalence
+
+```{r prevalence-table}
+# TODO: gt table showing national median + IQR for each PLACES measure
+# Rows: measure | median | IQR | n counties
+# Use confidence intervals from mart where available
+```
+
+---
+
+## PM2.5 Distribution
+
+```{r pm25-distribution}
+# TODO: histogram or density plot of county-level PM2.5 annual mean
+# Color by census region or urban/rural if USDA data added later
+# ggplot(mart %>% filter(!is.na(pm25_annual_mean))) +
+#   geom_histogram(aes(x = pm25_annual_mean), bins = 40) + ...
+```
+
+---
+
+## Exposure-Outcome Relationship
+
+PM2.5 annual mean vs. chronic disease prevalence across counties.
+
+```{r scatter-pm25-outcome}
+# TODO: scatter plot — x = pm25_annual_mean, y = obesity_pct (or chosen outcome)
+# Color by state or region
+# Add simple lm() trend line
+# Note: this is descriptive, not causal inference
+```
+
+---
+
+## County-Level Summary Table
+
+```{r county-table}
+# TODO: searchable/sortable gt or DT table of mart_epi_analysis
+# Columns: state, county, year, pm25, key measures
+# Filter to most recent year for default view
+```
+
+---
+
+## Methods Note
+
+This analysis uses county-level aggregate data. No individual-level data is used.
+All data sources are publicly available. EPA PM2.5 values are annual means aggregated
+across monitoring stations within each county; counties with fewer than 75% valid
+observations are excluded. CDC PLACES values are age-adjusted prevalence estimates.
+This pipeline is a demonstration of reproducible data infrastructure; statistical
+conclusions require appropriate epidemiologic methods not applied here.
