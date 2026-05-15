@@ -1,56 +1,39 @@
 -- Staging: CDC PLACES county data
 -- Source: raw.places_county (loaded by ingestion/load_places.R)
--- Grain: one row per county × year × measure
--- Outputs clean, renamed, typed columns ready for pivoting downstream
+-- Grain: one row per county × year × measure × data_value_type
 
 with source as (
     select * from {{ source('raw', 'places_county') }}
 ),
 
-renamed as (
+cleaned as (
     select
-        -- Geography
-        location_id         as county_fips,      -- 5-digit FIPS code
-        state_abbr,
-        state_desc          as state_name,
-        location_name       as county_name,
 
-        -- Time
-        cast(year as integer) as year,
+        -- [PART 6 · STEP 6.1] Select and cast columns from source
+        -- Columns to include:
+        --   county_fips, state_abbr, state_name, county_name
+        --   cast(year as integer)
+        --   category, category_id, measure, measure_id, short_question_text
+        --   data_value_type, data_value_type_id
+        --   cast(data_value as numeric)
+        --   cast(ci_low as numeric)        -- source col: low_confidence_limit
+        --   cast(ci_high as numeric)       -- source col: high_confidence_limit
+        --   cast(population_count as integer)
+        --   loaded_at
 
-        -- Measure
-        measure_id,
-        measure,
-        category,
-        short_question_text,
-        data_value_type,
-
-        -- Values
-        cast(data_value as numeric)              as data_value,
-        cast(low_confidence_limit as numeric)    as ci_low,
-        cast(high_confidence_limit as numeric)   as ci_high,
-        cast(population_count as integer)        as population_count,
-
-        -- Metadata
-        loaded_at
+        null as placeholder  -- remove this line when implementing
 
     from source
-
-    -- TODO: add any additional filters here (e.g., specific data_value_type)
-    -- Most analysis should use 'Age-adjusted prevalence' or 'Crude prevalence'
-    -- where data_value_type = 'Age-adjusted prevalence'
+    where data_value is not null
 ),
 
-validated as (
+-- Keep age-adjusted prevalence only for comparability across counties
+-- Crude prevalence also available — change filter if needed
+age_adjusted as (
     select *
-    from renamed
-    where
-        county_fips is not null
-        and year is not null
-        and measure_id is not null
-        and data_value is not null
-        -- TODO: add FIPS format check
-        -- and length(county_fips) = 5
+    from cleaned
+    where data_value_type_id = 'AgeAdjPrv'
+    -- Use 'CrdPrv' for crude prevalence instead
 )
 
-select * from validated
+select * from age_adjusted

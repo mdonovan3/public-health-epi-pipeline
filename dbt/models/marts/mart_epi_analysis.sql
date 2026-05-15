@@ -7,40 +7,42 @@ with base as (
     select * from {{ ref('int_places_epa_join') }}
 ),
 
--- Pivot selected PLACES measures to wide format
--- TODO: confirm exact measure_ids from actual data (run SELECT DISTINCT measure_id FROM stg_places_county)
--- Common measure_ids: OBESITY, DIABETES, CSMOKING, BPHIGH, COPD, CHD, STROKE, CASTHMA, DEPRESSION
 pivoted as (
     select
-        county_fips,
-        state_abbr,
-        state_name,
-        county_name,
-        year,
-        population_count,
-        pm25_annual_mean,
-        pm25_station_count,
-        missing_pm25,
 
-        -- TODO: fill in actual measure_ids after inspecting the data
-        max(case when measure_id = 'OBESITY'   then data_value end) as obesity_pct,
-        max(case when measure_id = 'DIABETES'  then data_value end) as diabetes_pct,
-        max(case when measure_id = 'CSMOKING'  then data_value end) as smoking_pct,
-        max(case when measure_id = 'BPHIGH'    then data_value end) as hypertension_pct,
-        max(case when measure_id = 'COPD'      then data_value end) as copd_pct,
-        max(case when measure_id = 'CHD'       then data_value end) as heart_disease_pct,
-        max(case when measure_id = 'CASTHMA'   then data_value end) as asthma_pct,
-        max(case when measure_id = 'DEPRESSION' then data_value end) as depression_pct,
+        -- [PART 9 · STEP 9.1] Dimension columns
+        -- county_fips, state_abbr, state_name, county_name, year,
+        -- population_count, pm25_annual_mean, pm25_station_count, missing_pm25
 
-        -- Confidence intervals for primary outcome (obesity as example)
-        -- TODO: add CI columns for key measures if needed in Quarto report
-        max(case when measure_id = 'OBESITY'   then ci_low end)     as obesity_ci_low,
-        max(case when measure_id = 'OBESITY'   then ci_high end)    as obesity_ci_high
+        -- [PART 9 · STEP 9.2] Health outcomes — pivot long to wide
+        -- Pattern: max(case when measure_id = 'OBESITY' then data_value end) as obesity_pct
+        -- Measures: OBESITY, DIABETES, CHD, STROKE, COPD,
+        --           CASTHMA, CANCER, DEPRESSION, HIGHCHOL, BPHIGH
+
+        -- [PART 9 · STEP 9.3] Behavioral risk factors
+        -- CSMOKING → smoking_pct
+        -- BINGE    → binge_drinking_pct
+        -- LPA      → physical_inactivity_pct
+        -- SLEEP    → short_sleep_pct
+
+        -- [PART 9 · STEP 9.4] Social determinants
+        -- ACCESS2    → no_insurance_pct
+        -- FOODINSECU → food_insecurity_pct
+        -- MHLTH      → mental_distress_pct
+        -- (add more from the full 39-measure list as needed)
+
+        -- [PART 9 · STEP 9.5] Confidence intervals and GROUP BY
+        -- Add ci_low / ci_high for primary exposure-outcome pair, e.g.:
+        --   max(case when measure_id = 'OBESITY'  then ci_low  end) as obesity_ci_low
+        --   max(case when measure_id = 'OBESITY'  then ci_high end) as obesity_ci_high
+        --   max(case when measure_id = 'CASTHMA'  then ci_low  end) as asthma_ci_low
+        --   max(case when measure_id = 'CASTHMA'  then ci_high end) as asthma_ci_high
+        --
+        -- GROUP BY all non-aggregated columns from STEP 9.1
+
+        null as placeholder  -- remove this line when implementing
 
     from base
-    group by
-        county_fips, state_abbr, state_name, county_name,
-        year, population_count, pm25_annual_mean, pm25_station_count, missing_pm25
 )
 
 select * from pivoted

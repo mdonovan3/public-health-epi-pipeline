@@ -1,0 +1,4 @@
+# Paste this line into crontab -e to install the polling job
+# Runs every minute — fires ingestion only if files are present in data/raw/
+
+* * * * * /home/mdonovan/Projects/public-health-epi-pipeline/cron/poll_and_run.sh >> /home/mdonovan/Projects/public-health-epi-pipeline/cron/pipeline.log 2>&1

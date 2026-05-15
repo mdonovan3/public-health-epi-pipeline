@@ -1,41 +1,42 @@
 -- Intermediate: join CDC PLACES outcomes with EPA PM2.5 exposure
 -- Aggregates station-level PM2.5 to county-year mean, then joins to PLACES
--- Grain: one row per county × year (all measures still long)
+-- Grain: one row per county × year × measure (still long)
 
 with places as (
     select * from {{ ref('stg_places_county') }}
 ),
 
--- Aggregate EPA stations to county-year mean PM2.5
 pm25_county_year as (
     select
-        county_fips,
-        -- TODO: confirm year column
-        -- year,
-        avg(pm25_mean)      as pm25_annual_mean,
-        count(*)            as station_count,    -- how many stations contributed
-        avg(obs_pct)        as avg_obs_pct
+
+        -- [PART 8 · STEP 8.1] Aggregate PM2.5 stations to county-year
+        -- Group by: county_fips, year
+        -- avg(pm25_mean)  as pm25_annual_mean
+        -- count(*)        as station_count
+        -- avg(obs_pct)    as avg_obs_pct
+
+        null as placeholder  -- remove this line when implementing
+
     from {{ ref('stg_epa_pm25') }}
-    group by
-        county_fips
-        -- , year
+    -- group by county_fips, year
 ),
 
 joined as (
     select
-        p.*,
-        e.pm25_annual_mean,
-        e.station_count     as pm25_station_count,
-        e.avg_obs_pct       as pm25_avg_coverage,
 
-        -- Flag counties with no PM2.5 data
-        case when e.county_fips is null then true else false end as missing_pm25
+        -- [PART 8 · STEP 8.2] Left join PLACES to PM2.5
+        -- p.*
+        -- e.pm25_annual_mean
+        -- e.station_count         as pm25_station_count
+        -- e.avg_obs_pct           as pm25_avg_coverage
+        -- case when e.county_fips is null then true else false end as missing_pm25
+
+        null as placeholder  -- remove this line when implementing
 
     from places p
-    left join pm25_county_year e
-        on p.county_fips = e.county_fips
-        -- TODO: add year join once year column confirmed in EPA data
-        -- and p.year = e.year
+    -- left join pm25_county_year e
+    --     on  p.county_fips = e.county_fips
+    --     and p.year        = e.year
 )
 
 select * from joined

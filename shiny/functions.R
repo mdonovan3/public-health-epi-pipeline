@@ -7,6 +7,8 @@ library(RPostgres)
 
 cfg <- config::get()
 
+# ── DB connection ──────────────────────────────────────────────────────────────
+
 get_con <- function() {
   dbConnect(
     RPostgres::Postgres(),
@@ -18,14 +20,15 @@ get_con <- function() {
   )
 }
 
-# Load mart data — optionally filtered to a specific year
+# ── Load mart data ─────────────────────────────────────────────────────────────
+
 load_mart_data <- function(year_filter = NULL) {
   con <- get_con()
   on.exit(dbDisconnect(con))
 
   query <- "SELECT * FROM marts.mart_epi_analysis"
 
-  # TODO: add year filter when called for initial load
+  # [PART 12 · STEP 12.1] Add year filter when provided
   # if (!is.null(year_filter)) {
   #   query <- paste0(query, " WHERE year = $1")
   #   return(dbGetQuery(con, query, list(year_filter)))
@@ -34,11 +37,14 @@ load_mart_data <- function(year_filter = NULL) {
   dbGetQuery(con, query)
 }
 
-# Return most recent available year in the mart
+# ── Most recent year in mart ───────────────────────────────────────────────────
+
 max_available_year <- function() {
   con <- get_con()
   on.exit(dbDisconnect(con))
-  # TODO: implement
+
+  # [PART 12 · STEP 12.2] Query mart for most recent year
   # dbGetQuery(con, "SELECT MAX(year) FROM marts.mart_epi_analysis")[[1]]
-  2021  # placeholder
+
+  2021  # placeholder — replace with real query above
 }

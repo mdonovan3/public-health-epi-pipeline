@@ -6,9 +6,11 @@ secrets.R
 # dbt profiles (contains DB host/credentials)
 dbt/profiles.yml
 
-# Raw data files (too large for git, drop in manually)
+# Data files (too large for git)
 data/raw/
 data/sample/
+data/processed/
+data/source/
 
 # dbt build artifacts
 dbt/target/

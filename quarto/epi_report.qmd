@@ -57,27 +57,14 @@ underlying this report.
 ## Data Summary
 
 ```{r summary-table}
-# TODO: build a gt summary table showing:
-# - Number of counties covered
-# - Year range
-# - % counties with PM2.5 data
-# - Key measures available
-
-# Placeholder
-mart %>%
-  summarise(
-    counties = n_distinct(county_fips),
-    states = n_distinct(state_abbr),
-    years = paste(min(year, na.rm=TRUE), max(year, na.rm=TRUE), sep="-"),
-    pct_with_pm25 = round(mean(!missing_pm25, na.rm=TRUE) * 100, 1)
-  ) %>%
-  gt() %>%
-  cols_label(
-    counties = "Counties",
-    states = "States",
-    years = "Years",
-    pct_with_pm25 = "% with PM2.5 data"
-  )
+# [PART 11 · STEP 11.1] Data summary gt table
+# Build a gt table showing:
+#   - Number of counties covered      n_distinct(county_fips)
+#   - Number of states                n_distinct(state_abbr)
+#   - Year range                      min(year) – max(year)
+#   - % counties with PM2.5 data      mean(!missing_pm25) * 100
+#
+# Use summarise() then gt() with cols_label() for readable column names
 ```
 
 ---
@@ -85,9 +72,10 @@ mart %>%
 ## Chronic Disease Prevalence
 
 ```{r prevalence-table}
-# TODO: gt table showing national median + IQR for each PLACES measure
-# Rows: measure | median | IQR | n counties
-# Use confidence intervals from mart where available
+# [PART 11 · STEP 11.2] National prevalence summary table
+# Reshape mart from wide to long with pivot_longer() across the *_pct columns
+# Summarise by measure: median, Q1, Q3, n counties with data
+# Display with gt() — one row per measure
 ```
 
 ---
@@ -95,10 +83,10 @@ mart %>%
 ## PM2.5 Distribution
 
 ```{r pm25-distribution}
-# TODO: histogram or density plot of county-level PM2.5 annual mean
-# Color by census region or urban/rural if USDA data added later
-# ggplot(mart %>% filter(!is.na(pm25_annual_mean))) +
-#   geom_histogram(aes(x = pm25_annual_mean), bins = 40) + ...
+# [PART 11 · STEP 11.3] Histogram of county-level PM2.5
+# Filter to !is.na(pm25_annual_mean)
+# ggplot geom_histogram() or geom_density()
+# Optional: color/facet by census region if you add a region column later
 ```
 
 ---
@@ -108,10 +96,11 @@ mart %>%
 PM2.5 annual mean vs. chronic disease prevalence across counties.
 
 ```{r scatter-pm25-outcome}
-# TODO: scatter plot — x = pm25_annual_mean, y = obesity_pct (or chosen outcome)
-# Color by state or region
-# Add simple lm() trend line
-# Note: this is descriptive, not causal inference
+# [PART 11 · STEP 11.4] Scatter plot — PM2.5 vs. chosen outcome
+# x = pm25_annual_mean, y = obesity_pct (or another measure)
+# geom_point(alpha = 0.3) + geom_smooth(method = "lm")
+# Color points by state or leave grey
+# Note in caption: descriptive association only, not causal
 ```
 
 ---
@@ -119,9 +108,12 @@ PM2.5 annual mean vs. chronic disease prevalence across counties.
 ## County-Level Summary Table
 
 ```{r county-table}
-# TODO: searchable/sortable gt or DT table of mart_epi_analysis
-# Columns: state, county, year, pm25, key measures
-# Filter to most recent year for default view
+# [PART 11 · STEP 11.5] Searchable county data table
+# Filter mart to most recent year for default view
+# Columns: state_abbr, county_name, year, pm25_annual_mean,
+#          obesity_pct, diabetes_pct, smoking_pct
+# Use DT::datatable() for searchable/sortable output
+# Or gt() for a formatted static table
 ```
 
 ---
