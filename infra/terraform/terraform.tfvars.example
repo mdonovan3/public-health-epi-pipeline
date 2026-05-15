@@ -1,0 +1,11 @@
+# Copy this file to terraform.tfvars and fill in values.
+# terraform.tfvars is gitignored — never commit it.
+
+aws_region    = "us-east-1"
+instance_type = "t3.small"
+key_name      = "your-key-pair-name"
+ami_id        = "ami-XXXXXXXXXXXXXXXXX"  # Amazon Linux 2023 — look up for your region
+vpc_id        = "vpc-XXXXXXXXXXXXXXXXX"
+subnet_id     = "subnet-XXXXXXXXXXXXXXXXX"
+db_password   = "your-db-password-here"
+project_repo  = "https://github.com/mdonovan3/public-health-epi-pipeline.git"

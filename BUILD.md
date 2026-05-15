@@ -549,6 +549,86 @@ git push origin main
 
 ---
 
+---
+
+## PART 15 — Infrastructure as Code (EC2 Deployment)
+
+Files: `infra/terraform/`
+
+Provisions an EC2 instance on AWS that runs the pipeline on a cron schedule.
+The same cron poller used locally (`cron/poll_and_run.sh`) is installed on the
+instance during bootstrap. Source data can be dropped into `data/raw/` via SCP
+or an S3 sync job.
+
+### [15.1] Fill in terraform.tfvars
+
+```bash
+cd infra/terraform
+cp terraform.tfvars.example terraform.tfvars
+```
+
+Edit `terraform.tfvars` — fill in `key_name`, `ami_id`, `vpc_id`, `subnet_id`,
+`db_password`. Look up the current Amazon Linux 2023 AMI for us-east-1:
+
+```bash
+aws ec2 describe-images --owners amazon \
+  --filters "Name=name,Values=al2023-ami-*-x86_64" \
+  --query 'sort_by(Images,&CreationDate)[-1].ImageId' \
+  --output text
+```
+
+### [15.2] Configure remote state (optional, recommended)
+
+`infra/terraform/main.tf` → block marked `[PART 15 · STEP 15.2]`
+
+Uncomment the `backend "s3"` block and set `bucket` to an existing S3 bucket.
+Skip this for solo use — local state is fine.
+
+### [15.3] Lock down SSH
+
+`infra/terraform/main.tf` → ingress block marked `[PART 15 · STEP 15.3]`
+
+Replace `0.0.0.0/0` with your IP: `["YOUR.IP.HERE/32"]`
+
+### [15.4] Add IAM policies if needed
+
+`infra/terraform/main.tf` → block marked `[PART 15 · STEP 15.4]`
+
+Uncomment the SSM policy attachment if you want Session Manager access instead
+of key-pair SSH. Add an S3 read/write policy if the pipeline reads source files
+from S3 rather than local disk.
+
+### [15.5] Apply
+
+```bash
+cd infra/terraform
+terraform init
+terraform plan
+terraform apply
+```
+
+On completion, `terraform output ssh_command` prints the ready-to-use SSH line.
+
+### [15.6] Verify bootstrap
+
+SSH in and confirm bootstrap completed:
+
+```bash
+sudo tail -100 /var/log/user-data.log
+crontab -l                          # should show poll_and_run.sh entry
+Rscript -e "library(RPostgres)"     # confirm R packages installed
+dbt --version                       # confirm dbt installed
+```
+
+### [15.7] Whitelist instance IP in RDS security group
+
+The RDS instance (lhrc-db) has a security group that controls inbound Postgres
+access. Add a rule allowing port 5432 from the EC2 instance's public IP (from
+`terraform output public_ip`), or preferably from its private IP if they share
+a VPC.
+
+---
+
 ## Quick reference: section → file map
 
 | Section | File |
@@ -567,3 +647,4 @@ git push origin main
 | 12.1–12.2 | shiny/functions.R |
 | 13.1–13.8 | shiny/app.R |
 | 14.1–14.4 | run_pipeline.R |
+| 15.1–15.7 | infra/terraform/ |
