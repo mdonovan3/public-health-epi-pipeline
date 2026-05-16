@@ -147,15 +147,15 @@ dbWriteTable(con,
 
 File: `ingestion/load_epa_pm25.R`
 
-Reads `data/raw/epa_pm25_annual.csv` (67,923 rows, all pollutants), filters to PM2.5
-(parameter_code 88101), and loads station-level rows to `raw.epa_pm25`.
+Reads `data/raw/epa_pm25_annual.csv` (all pollutants), filters to PM2.5 (88101),
+Ozone (44201), and NO2 (42602), and loads station-level rows to `raw.epa_pm25`.
 
-### [4.1] clean_names() and filter to PM2.5
+### [4.1] Filter to pollutants of interest
 
 `ingestion/load_epa_pm25.R` → block marked `[PART 4 · STEP 4.1]`
 
-Call `clean_names()` then `filter(parameter_code == 88101)`.
-The file contains ozone, NO2, CO, and other pollutants — this filter keeps only PM2.5 FRM/FEM.
+`filter(Parameter.Code %in% c(88101, 44201, 42602))` — keeps PM2.5 FRM/FEM, Ozone, and NO2.
+The file contains CO, SO2, and other pollutants that are excluded.
 
 ### [4.2] Select columns
 

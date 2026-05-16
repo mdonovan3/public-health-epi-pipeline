@@ -1,7 +1,6 @@
 # Shared utilities — DB connection, file reading (local or S3), logging
 # All ingestion scripts source this file first.
 
-library(config)
 library(DBI)
 library(RPostgres)
 
@@ -16,7 +15,8 @@ get_con <- function() {
     port     = cfg$db$port,
     dbname   = cfg$db$dbname,
     user     = cfg$db$user,
-    password = Sys.getenv("DB_PASSWORD_EPI")
+    password = Sys.getenv("DB_PASSWORD_EPI"),
+    options  = "-c client_min_messages=warning"
   )
 }
 

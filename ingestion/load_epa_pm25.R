@@ -1,80 +1,82 @@
-# EPA PM2.5 County Data — ingestion script
-# Reads annual summary CSV (all parameters), filters to PM2.5 (parameter_code 88101),
-# loads station-level rows to raw.epa_pm25 — county aggregation happens in dbt
+# EPA air quality ingestion script
+# Reads one year of data from data/raw/epa_pm25_YYYY.csv, filters to
+# PM2.5 (88101), Ozone (44201), and NO2 (42602), loads to raw.epa_pm25.
+# Drop a year via: scripts/simulate_drop.sh <year> epa → lands in data/raw/
 #
-# Source: https://aqs.epa.gov/aqsweb/airdata/annual_conc_by_monitor_2024.zip
-# File already downloaded to data/raw/epa_pm25_annual.csv
+# Source: https://aqs.epa.gov/aqsweb/airdata/annual_conc_by_monitor_YYYY.zip
 
 source(here::here("ingestion/utils.R"))
 library(tidyverse)
-library(janitor)
-
 TARGET_TABLE <- "epa_pm25"
 TARGET_SCHEMA <- "raw"
 
 # ── Read ───────────────────────────────────────────────────────────────────────
 
-log_msg("Reading EPA annual summary file...")
-raw <- read_raw_file("epa_pm25_annual.csv")
+epa_files <- list.files(here::here(cfg$data$raw_dir), pattern = "^epa_pm25_", full.names = TRUE)
+if (length(epa_files) == 0) stop("No epa_pm25_* file found in data/raw/ — run simulate_drop.sh first")
+if (length(epa_files) > 1) stop("Multiple EPA files in data/raw/ — process one at a time: ", paste(basename(epa_files), collapse = ", "))
+log_msg(sprintf("Reading %s...", basename(epa_files)))
+raw <- read.csv(epa_files, stringsAsFactors = FALSE, check.names = FALSE)
 
-# ── Clean ─────────────────────────────────────────────────────────────────────
+# ── Filter ────────────────────────────────────────────────────────────────────
+# 88101 = PM2.5  44201 = Ozone  42602 = NO2
+filtered <- raw %>%
+  filter(`Parameter Code` %in% c(88101, 44201, 42602)) %>%
+  mutate(loaded_at = as.character(Sys.time())) %>%
+  map_dfc(as.character)
 
-# Source columns (after clean_names()):
-#   state_code, county_code, site_num, parameter_code, poc,
-#   latitude, longitude, datum, parameter_name,
-#   sample_duration, pollutant_standard, metric_used, method_name,
-#   year, units_of_measure, event_type,
-#   observation_count, observation_percent, arithmetic_mean,
-#   completeness_indicator, ...
-#
-# Keep columns: state_code, county_code, year, latitude, longitude,
-#   arithmetic_mean, observation_count, observation_percent,
-#   completeness_indicator, parameter_name, sample_duration, pollutant_standard
-#
-# Build county_fips:
-#   paste0(str_pad(state_code, 2, pad="0"), str_pad(county_code, 3, pad="0"))
-
-log_msg("Cleaning and filtering to PM2.5...")
-
-cleaned <- raw %>%
-
-  # [PART 4 · STEP 4.1] clean_names() and filter to PM2.5 only
-  # clean_names() — normalizes "State Code" → state_code, etc.
-  # filter(parameter_code == 88101) — keeps PM2.5 FRM/FEM only
-
-  # [PART 4 · STEP 4.2] Select columns
-  # select() the columns listed above
-
-  # [PART 4 · STEP 4.3] Build county_fips and cast types
-  # mutate():
-  #   county_fips = paste0(str_pad(as.character(state_code), 2, pad="0"),
-  #                        str_pad(as.character(county_code), 3, pad="0"))
-  #   arithmetic_mean → as.numeric()
-  #   observation_percent → as.numeric()
-  #   observation_count → as.integer()
-  #   year → as.integer()
-  #   latitude, longitude → as.numeric()
-  #   loaded_at = Sys.time()
-
-  # [PART 4 · STEP 4.4] Filter null PM2.5 values
-  # filter(!is.na(arithmetic_mean))
-
-  NULL  # remove this line when implementing
-
-log_msg(sprintf("Cleaned: %d PM2.5 station rows", nrow(cleaned)))
+log_msg(sprintf("Filtered: %d rows", nrow(filtered)))
 
 # ── Load ───────────────────────────────────────────────────────────────────────
 
 con <- get_con()
 on.exit(dbDisconnect(con))
 
-# [PART 4 · STEP 4.5] Create schema and load table
-# dbExecute(con, "CREATE SCHEMA IF NOT EXISTS raw")
-# dbWriteTable(con,
-#   name      = Id(schema = TARGET_SCHEMA, table = TARGET_TABLE),
-#   value     = cleaned,
-#   overwrite = TRUE,
-#   row.names = FALSE
-# )
+invisible(dbExecute(con, "CREATE SCHEMA IF NOT EXISTS raw"))
 
-log_msg(sprintf("Loaded %d rows into %s.%s", nrow(cleaned), TARGET_SCHEMA, TARGET_TABLE))
+incoming_year <- unique(filtered$Year)
+incoming_rows <- nrow(filtered)
+
+table_exists <- dbExistsTable(con, Id(schema = TARGET_SCHEMA, table = TARGET_TABLE))
+
+if (table_exists) {
+  existing_rows <- dbGetQuery(con,
+    "SELECT COUNT(*) AS n FROM raw.epa_pm25 WHERE \"Year\" = $1",
+    params = list(incoming_year)
+  )$n
+
+  #### check if the year's data is already in the database.
+  #### if it is and the row count is the same as the dataframe, do nothing.
+  #### If it exists, but different row count, drop and reinsert.
+  #### If it is not in the DB at all, insert
+  if (existing_rows == incoming_rows) {
+    log_msg(sprintf("SKIP: Year %s already loaded (%d rows match).", incoming_year, incoming_rows))
+    quit(save = "no", status = 0)
+  } else if (existing_rows > 0) {
+    log_msg(sprintf("Year %s exists with %d rows but incoming has %d — deleting and reinserting.", incoming_year, existing_rows, incoming_rows))
+    dbExecute(con,
+      "DELETE FROM raw.epa_pm25 WHERE \"Year\" = $1",
+      params = list(incoming_year)
+    )
+  }
+
+  #### check for any columns that may have been added to the datafiles that were not in prior years and create them
+  new_cols <- setdiff(names(filtered), dbListFields(con, Id(schema = TARGET_SCHEMA, table = TARGET_TABLE)))
+
+  walk(new_cols, \(col) {
+    dbExecute(con, paste(
+      "ALTER TABLE", paste0(dbQuoteIdentifier(con, TARGET_SCHEMA), ".", dbQuoteIdentifier(con, TARGET_TABLE)),
+      "ADD COLUMN IF NOT EXISTS", dbQuoteIdentifier(con, col), "TEXT"
+    ))
+    log_msg(sprintf("Added column: %s", col))
+  })
+}
+
+dbWriteTable(con,
+  name      = Id(schema = TARGET_SCHEMA, table = TARGET_TABLE),
+  value     = filtered,
+  append    = TRUE,
+  row.names = FALSE
+)
+
+log_msg(sprintf("Loaded %d rows into %s.%s", incoming_rows, TARGET_SCHEMA, TARGET_TABLE))

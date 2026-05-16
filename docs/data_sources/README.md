@@ -49,8 +49,8 @@ One row per monitoring station per year. Contains all pollutants in one file —
 | Code  | Pollutant | Metric used | Status |
 |-------|-----------|-------------|--------|
 | 88101 | PM2.5 FRM/FEM | Annual mean (µg/m³) | active |
-| 44201 | Ozone | 4th highest daily max 8-hr avg (ppm) | pending |
-| 42602 | NO2 | Annual mean (ppb) | pending |
+| 44201 | Ozone | 4th highest daily max 8-hr avg (ppm) | active |
+| 42602 | NO2 | Annual mean (ppb) | active |
 | 42101 | CO  | 2nd highest non-overlapping 8-hr avg | not planned |
 | 42401 | SO2 | 99th percentile daily max 1-hr (ppb) | not planned |
 

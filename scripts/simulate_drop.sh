@@ -63,8 +63,8 @@ fi
 if [[ "$DATASET" == "both" || "$DATASET" == "epa" ]]; then
   src="$BATCHES_DIR/epa_pm25_${YEAR}.csv"
   if [ -f "$src" ]; then
-    cp "$src" "$RAW_DIR/epa_pm25_annual.csv"
-    echo "[$(date '+%H:%M:%S')] Dropped → data/raw/epa_pm25_annual.csv  (EPA $YEAR)"
+    cp "$src" "$RAW_DIR/epa_pm25_${YEAR}.csv"
+    echo "[$(date '+%H:%M:%S')] Dropped → data/raw/epa_pm25_${YEAR}.csv  (EPA $YEAR)"
     dropped=$((dropped + 1))
   else
     echo "Not found: $src"

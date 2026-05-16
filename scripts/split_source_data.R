@@ -34,7 +34,7 @@ for (fname in places_files) {
   }
 
   cat(sprintf("Reading %s...\n", fname))
-  df <- read.csv(path, stringsAsFactors = FALSE)
+  df <- read.csv(path, stringsAsFactors = FALSE, check.names = FALSE)
 
   years <- sort(unique(df$year))
   cat(sprintf("  Years found: %s\n", paste(years, collapse = ", ")))
@@ -48,7 +48,7 @@ for (fname in places_files) {
 }
 
 # ── EPA PM2.5 ─────────────────────────────────────────────────────────────────
-# One file per year already — just filter to PM2.5 (parameter_code 88101)
+# One file per year already — filter to PM2.5 (88101), Ozone (44201), NO2 (42602)
 # and copy to batches/ so everything is in one place.
 #
 # Source files:
@@ -71,15 +71,11 @@ for (yr in epa_years) {
   }
 
   cat(sprintf("Reading %s...\n", fname))
-  df <- read.csv(path, stringsAsFactors = FALSE)
+  df <- read.csv(path, stringsAsFactors = FALSE, check.names = FALSE)
 
-  # Normalize column name — EPA file has "Parameter.Code" before clean_names
-  col_names <- tolower(gsub("\\.", "_", names(df)))
-  names(df) <- col_names
-
-  # Filter to PM2.5 FRM/FEM only
-  if ("parameter_code" %in% names(df)) {
-    df <- df[df$parameter_code == 88101, ]
+  # Filter to PM2.5 (88101), Ozone (44201), NO2 (42602)
+  if ("Parameter Code" %in% names(df)) {
+    df <- df[df$`Parameter Code` %in% c(88101, 44201, 42602), ]
   }
 
   out_path <- file.path(BATCHES_DIR, sprintf("epa_pm25_%s.csv", yr))
@@ -88,4 +84,4 @@ for (yr in epa_years) {
 }
 
 cat("\nDone. Batches written to data/source/batches/\n")
-cat("Run scripts/simulate_drop.sh <year> to drop a year into data/raw/\n")
+cat("Run scripts/simulate_drop.sh <year> to drop a year into data/source/\n")

@@ -15,8 +15,8 @@ Check off items as completed. Resume from wherever this list is when returning.
 - [ ] Download EPA PM2.5 annual summary CSV from https://www.epa.gov/outdoor-air-quality-data/download-daily-data
 - [x] Drop both files in data/raw/ and inspect column names
 - [ ] Update column names in ingestion/load_places.R — actual cols are lowercase_snake: stateabbr, statedesc, locationname, locationid, year, datasource, category, measure, measureid, data_value, low_confidence_limit, high_confidence_limit, data_value_type, populationcount
-- [ ] Update column names in ingestion/load_epa_pm25.R — actual cols have spaces: "State Code", "County Code", "Site Num", "Parameter Code", "POC" etc. — clean_names() will convert to state_code, county_code, site_num, parameter_code
-- [ ] Add filter in load_epa_pm25.R: filter(parameter_code == 88101) to isolate PM2.5 FRM/FEM
+- [ ] Update column names in ingestion/load_epa_pm25.R — actual cols have spaces, read.csv() converts to dots: State.Code, County.Code, Parameter.Code etc.
+- [ ] Add filter in load_epa_pm25.R: filter(Parameter.Code %in% c(88101, 44201, 42602)) — PM2.5, Ozone, NO2
 - [ ] Verify FIPS format (leading zeros) in both files — update pad logic if needed
 - [ ] Confirm year column in EPA file (may need to extract from filename)
 
