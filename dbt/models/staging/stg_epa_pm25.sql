@@ -9,29 +9,25 @@ with source as (
 cleaned as (
     select
 
-        -- [PART 7 · STEP 7.1] Select and cast columns from source
-        -- Raw column names come from read.csv() dot-notation, lowercased by Postgres.
-        -- Alias each to snake_case here — this is where normalization happens.
-        --   county_fips
-        --   cast("year" as integer)                          as year
-        --   cast("state.code" as varchar(2))                 as state_code
-        --   cast("county.code" as varchar(3))                as county_code
-        --   "parameter.name"                                 as parameter_name
-        --   "sample.duration"                                as sample_duration
-        --   "pollutant.standard"                             as pollutant_standard
-        --   "units.of.measure"                               as units_of_measure
-        --   cast("arithmetic.mean" as numeric)               as pm25_mean
-        --   cast("observation.count" as integer)             as obs_count
-        --   cast("observation.percent" as numeric)           as obs_pct
-        --   "completeness.indicator"                         as completeness_indicator
-        --   cast("latitude" as numeric)                      as latitude
-        --   cast("longitude" as numeric)                     as longitude
-        --   loaded_at
-
-        null as placeholder  -- remove this line when implementing
+        lpad("State Code", 2, '0') || lpad("County Code", 3, '0') as county_fips,
+        cast("Year" as integer) as year,
+        "State Code" as state_code,
+        "County Code" as county_code,
+        "Parameter Name" as parameter_name,
+        "Parameter Code" as parameter_code,
+        "Sample Duration" as sample_duration,
+        "Pollutant Standard" as pollutant_standard,
+        "Units of Measure" as units_of_measure,
+        cast("Arithmetic Mean" as numeric) as arithmetic_mean,
+        cast("Observation Count" as integer) as obs_count,
+        cast("Observation Percent" as numeric) as obs_pct,
+        "Completeness Indicator" as completeness_indicator,
+        cast("Latitude" as numeric) as latitude,
+        cast("Longitude" as numeric) as longitude,
+        loaded_at
 
     from source
-    where "arithmetic.mean" is not null
+    where "Arithmetic Mean" is not null
 ),
 
 -- Standard EPA guidance: exclude stations with < 75% valid observations

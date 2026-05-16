@@ -9,19 +9,23 @@ with source as (
 cleaned as (
     select
 
-        -- [PART 6 · STEP 6.1] Select and cast columns from source
-        -- Columns to include:
-        --   county_fips, state_abbr, state_name, county_name
-        --   cast(year as integer)
-        --   category, category_id, measure, measure_id, short_question_text
-        --   data_value_type, data_value_type_id
-        --   cast(data_value as numeric)
-        --   cast(ci_low as numeric)        -- source col: low_confidence_limit
-        --   cast(ci_high as numeric)       -- source col: high_confidence_limit
-        --   cast(population_count as integer)
-        --   loaded_at
-
-        null as placeholder  -- remove this line when implementing
+        lpad(cast(locationid as varchar), 5, '0') as county_fips,
+        cast(year as integer) as year,
+        stateabbr as state_abbr,
+        statedesc as state_name,
+        locationname as county_name,
+        category,
+        categoryid as category_id,
+        measure,
+        measureid as measure_id,
+        short_question_text,
+        data_value_type,
+        datavaluetypeid as data_value_type_id,
+        cast(data_value as numeric) as data_value,
+        cast(low_confidence_limit as numeric) as ci_low,
+        cast(high_confidence_limit as numeric) as ci_high,
+        cast(totalpopulation as integer) as population_count,
+        loaded_at
 
     from source
     where data_value is not null
@@ -33,7 +37,7 @@ age_adjusted as (
     select *
     from cleaned
     where data_value_type_id = 'AgeAdjPrv'
-    -- Use 'CrdPrv' for crude prevalence instead
+    -- use 'CrdPrv' for crude prevalence instead
 )
 
 select * from age_adjusted
