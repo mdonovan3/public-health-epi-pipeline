@@ -51,6 +51,14 @@ variable "project_repo" {
   default     = "https://github.com/mdonovan3/public-health-epi-pipeline.git"
 }
 
+variable "airflow_admin_password" {
+  description = "Password for the Airflow web UI admin user"
+  type        = string
+  sensitive   = true
+  # [PART 15 · STEP 15.1e] Set in terraform.tfvars — use a strong password,
+  # UI is exposed on port 8080. Prefer SSH tunnel over opening 8080 publicly.
+}
+
 variable "tags" {
   description = "Tags applied to all resources"
   type        = map(string)

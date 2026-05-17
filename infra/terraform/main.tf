@@ -36,6 +36,18 @@ resource "aws_security_group" "epi_pipeline" {
     cidr_blocks = ["0.0.0.0/0"] # TODO: lock down to your IP
   }
 
+  # Airflow webserver — port 8080.
+  # Preferred access: SSH tunnel (ssh -L 8080:localhost:8080 ec2-user@<ip>)
+  # which requires no inbound rule at all. Uncomment below only if you need
+  # direct browser access without a tunnel, and lock it to your IP.
+  # ingress {
+  #   description = "Airflow UI"
+  #   from_port   = 8080
+  #   to_port     = 8080
+  #   protocol    = "tcp"
+  #   cidr_blocks = ["YOUR.IP.HERE/32"]
+  # }
+
   egress {
     description = "All outbound"
     from_port   = 0
@@ -90,8 +102,9 @@ resource "aws_instance" "epi_pipeline" {
   }
 
   user_data = templatefile("${path.module}/user_data.sh", {
-    db_password  = var.db_password
-    project_repo = var.project_repo
+    db_password            = var.db_password
+    project_repo           = var.project_repo
+    airflow_admin_password = var.airflow_admin_password
   })
 
   # [PART 15 · STEP 15.5] After first apply, connect and tail /var/log/user-data.log

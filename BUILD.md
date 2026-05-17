@@ -555,10 +555,11 @@ git push origin main
 
 Files: `infra/terraform/`
 
-Provisions an EC2 instance on AWS that runs the pipeline on a cron schedule.
-The same cron poller used locally (`cron/poll_and_run.sh`) is installed on the
-instance during bootstrap. Source data can be dropped into `data/raw/` via SCP
-or an S3 sync job.
+Provisions an EC2 instance on AWS running Airflow natively (not in Docker).
+Bootstrap installs R, dbt, Airflow, clones the repo, initializes the Airflow
+metadata DB, and starts scheduler + webserver as systemd services.
+Source data is dropped into `data/raw/` via SCP; the Airflow DAG handles
+ingestion → dbt → archive.
 
 ### [15.1] Fill in terraform.tfvars
 
@@ -568,7 +569,8 @@ cp terraform.tfvars.example terraform.tfvars
 ```
 
 Edit `terraform.tfvars` — fill in `key_name`, `ami_id`, `vpc_id`, `subnet_id`,
-`db_password`. Look up the current Amazon Linux 2023 AMI for us-east-1:
+`db_password`, and `airflow_admin_password`. Look up the current Amazon Linux
+2023 AMI for us-east-1:
 
 ```bash
 aws ec2 describe-images --owners amazon \
@@ -607,22 +609,49 @@ terraform plan
 terraform apply
 ```
 
-On completion, `terraform output ssh_command` prints the ready-to-use SSH line.
+On completion:
+
+```bash
+terraform output ssh_command           # SSH into the instance
+terraform output airflow_tunnel_command  # open Airflow UI via SSH tunnel
+```
 
 ### [15.6] Verify bootstrap
 
-SSH in and confirm bootstrap completed:
+Bootstrap takes ~10 minutes (Airflow + R packages). Tail the log:
 
 ```bash
-sudo tail -100 /var/log/user-data.log
-crontab -l                          # should show poll_and_run.sh entry
-Rscript -e "library(RPostgres)"     # confirm R packages installed
-dbt --version                       # confirm dbt installed
+sudo tail -f /var/log/user-data.log
 ```
 
-### [15.7] Whitelist instance IP in RDS security group
+When complete, verify:
 
-The RDS instance (lhrc-db) has a security group that controls inbound Postgres
+```bash
+systemctl status airflow-scheduler    # should be active (running)
+systemctl status airflow-webserver    # should be active (running)
+Rscript -e "library(RPostgres)"       # confirm R packages
+dbt --version                         # confirm dbt
+airflow version                       # confirm Airflow
+```
+
+### [15.7] Access the Airflow UI
+
+Do not open port 8080 to the internet. Use an SSH tunnel instead:
+
+```bash
+# From your local machine (use terraform output airflow_tunnel_command):
+ssh -L 8080:localhost:8080 -i ~/.ssh/<key>.pem ec2-user@<instance-ip>
+
+# Then open in browser:
+# http://localhost:8080  — login: admin / <airflow_admin_password>
+```
+
+Trigger the `epi_pipeline` DAG manually first to confirm it runs end-to-end
+before scheduling it on a timer.
+
+### [15.8] Whitelist instance IP in RDS security group
+
+The RDS instance (lhrc-db) has a security group controlling inbound Postgres
 access. Add a rule allowing port 5432 from the EC2 instance's public IP (from
 `terraform output public_ip`), or preferably from its private IP if they share
 a VPC.
@@ -647,4 +676,4 @@ a VPC.
 | 12.1–12.2 | shiny/functions.R |
 | 13.1–13.8 | shiny/app.R |
 | 14.1–14.4 | run_pipeline.R |
-| 15.1–15.7 | infra/terraform/ |
+| 15.1–15.8 | infra/terraform/ |

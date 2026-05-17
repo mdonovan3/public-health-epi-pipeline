@@ -17,3 +17,13 @@ output "ssh_command" {
   description = "Ready-to-use SSH command"
   value       = "ssh -i ~/.ssh/${var.key_name}.pem ec2-user@${aws_instance.epi_pipeline.public_ip}"
 }
+
+output "airflow_tunnel_command" {
+  description = "SSH tunnel to reach Airflow UI at http://localhost:8080"
+  value       = "ssh -L 8080:localhost:8080 -i ~/.ssh/${var.key_name}.pem ec2-user@${aws_instance.epi_pipeline.public_ip}"
+}
+
+output "airflow_ui_note" {
+  description = "How to access Airflow after opening the tunnel"
+  value       = "Open http://localhost:8080 — login: admin / <airflow_admin_password from tfvars>"
+}
