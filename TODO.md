@@ -59,10 +59,30 @@ Check off items as completed. Resume from wherever this list is when returning.
 - [ ] Deploy to shinyapps.io
 
 ## Pipeline Orchestration
+
+### Current: cron (local dev — keep until dbt is complete)
 - [ ] Test run_pipeline.R end-to-end locally
-- [ ] Set up cron/poll_and_run.sh for prod EC2
-- [ ] Implement S3 read in ingestion/utils.R read_raw_file()
 - [ ] Implement already_loaded() idempotency check in ingestion/utils.R
+- [ ] Implement S3 read in ingestion/utils.R read_raw_file()
+
+### Next: Airflow via Docker (local — switch after dbt is done)
+Scaffolding already in docker/. Switch sequence:
+- [ ] Complete dbt models first (BUILD.md PART 6–10)
+- [ ] cp docker/.env.example docker/.env — fill in DB_PASSWORD_EPI + AIRFLOW_UID (run: echo "AIRFLOW_UID=$(id -u)")
+- [ ] docker compose -f docker/docker-compose.yml run airflow-init  (first time only)
+- [ ] docker compose -f docker/docker-compose.yml up -d
+- [ ] Open http://localhost:8080 (admin / admin), trigger epi_pipeline DAG manually
+- [ ] Confirm task graph: check_raw → [ingest_places, ingest_epa] → dbt_run → dbt_test → archive
+- [ ] Disable cron entry once Airflow confirmed working
+
+### EC2 deployment: run Airflow natively, not in Docker
+Do NOT run Docker-inside-EC2 — adds complexity and memory overhead for no benefit on t3.small.
+Instead: pip install apache-airflow on the instance, copy the DAG, run scheduler and webserver
+as systemd services. Update infra/terraform/user_data.sh [PART 15 · STEP 15.12] accordingly.
+- [ ] Add Airflow pip install to user_data.sh
+- [ ] Add systemd unit files for airflow-scheduler and airflow-webserver
+- [ ] Copy docker/dags/epi_pipeline_dag.py to ~/airflow/dags/ on EC2
+- [ ] Remove cron line from user_data.sh once Airflow is verified on EC2
 
 ## Portfolio Integration
 - [ ] Add project to profile.json evidence[]
