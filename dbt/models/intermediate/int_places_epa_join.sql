@@ -12,7 +12,7 @@ pm25_county_year as (
         -- [PART 8 · STEP 8.1] Aggregate PM2.5 stations to county-year
         -- Group by: county_fips, year
         county_fips, year, 
-        avg(pm25_mean)  as pm25_annual_mean,
+        avg(arithmetic_mean)  as pm25_annual_mean,
         count(*)        as station_count,
         avg(obs_pct)    as avg_obs_pct
 	
