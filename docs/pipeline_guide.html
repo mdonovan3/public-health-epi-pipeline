@@ -6,169 +6,148 @@
   <title>Pipeline Guide — Epi Pipeline</title>
   <link rel="stylesheet" href="site/style.css">
   <style>
-    .layer-header {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin: 40px 0 12px;
-      border-bottom: 2px solid #e2e8f0;
-      padding-bottom: 10px;
-    }
-    .layer-header h2 { margin: 0; border: none; padding: 0; }
+    /* ── Layer badges ── */
     .layer-tag {
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      padding: 3px 10px;
-      border-radius: 4px;
+      font-size: 11px; font-weight: 700; letter-spacing: 0.06em;
+      text-transform: uppercase; padding: 3px 10px; border-radius: 4px;
     }
     .tag-raw          { background: #fed7d7; color: #9b2335; }
     .tag-staging      { background: #bee3f8; color: #2a4365; }
     .tag-intermediate { background: #e9d8fd; color: #44337a; }
     .tag-mart         { background: #c6f6d5; color: #276749; }
 
+    .layer-header {
+      display: flex; align-items: center; gap: 12px;
+      margin: 48px 0 4px; padding-bottom: 10px;
+      border-bottom: 2px solid #e2e8f0;
+    }
+    .layer-header h2 { margin: 0; border: none; padding: 0; }
+
     .schema-label {
+      font-size: 12px; color: #718096; margin-bottom: 20px;
       font-family: "SF Mono", "Fira Code", monospace;
-      font-size: 12px;
-      color: #718096;
-      margin-bottom: 16px;
     }
 
-    .transform-list { list-style: none; margin: 12px 0 20px; }
-    .transform-list li {
-      font-size: 14px;
-      color: #4a5568;
-      padding: 5px 0 5px 20px;
-      position: relative;
-      line-height: 1.6;
-    }
-    .transform-list li::before {
-      content: "→";
-      position: absolute;
-      left: 0;
-      color: #a0aec0;
-      font-weight: 700;
-    }
-
-    .two-col {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 20px;
-      margin: 16px 0;
-    }
-    .col-box {
-      background: #fff;
-      border: 1px solid #e2e8f0;
-      border-radius: 8px;
-      padding: 18px;
-    }
-    .col-box h4 {
-      font-size: 13px;
-      font-weight: 700;
-      color: #1a2332;
-      margin-bottom: 10px;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-
-    .stat-row {
-      display: flex;
-      gap: 20px;
-      margin: 12px 0;
-      flex-wrap: wrap;
-    }
+    /* ── Stats ── */
+    .stat-row { display: flex; gap: 16px; margin: 16px 0; flex-wrap: wrap; }
     .stat {
-      background: #fff;
-      border: 1px solid #e2e8f0;
-      border-radius: 8px;
-      padding: 14px 20px;
-      min-width: 130px;
+      background: #fff; border: 1px solid #e2e8f0; border-radius: 8px;
+      padding: 12px 18px; min-width: 120px;
     }
-    .stat .stat-val { font-size: 22px; font-weight: 700; color: #1a2332; }
-    .stat .stat-lbl { font-size: 12px; color: #718096; margin-top: 2px; }
+    .stat .stat-val { font-size: 20px; font-weight: 700; color: #1a2332; }
+    .stat .stat-lbl { font-size: 11px; color: #718096; margin-top: 2px; }
 
-    .flow-arrow {
-      text-align: center;
-      font-size: 22px;
-      color: #a0aec0;
-      margin: 8px 0;
-      line-height: 1;
+    /* ── Code with annotations ── */
+    .code-wrap { position: relative; margin: 16px 0; }
+
+    .code-section {
+      border-radius: 6px; overflow: hidden;
+      border: 1px solid #2d3748; margin: 8px 0;
+    }
+    .code-label {
+      background: #2d3748; color: #a0aec0;
+      font-size: 11px; font-weight: 700; letter-spacing: 0.06em;
+      text-transform: uppercase; padding: 6px 16px;
+      border-bottom: 1px solid #1a2332;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    .code-label.label-outside { background: #2d3748; }
+    .code-label.label-txn     { background: #276749; color: #c6f6d5; }
+    .code-label.label-sql     { background: #2a4365; color: #bee3f8; }
+
+    pre {
+      background: #1a2332; color: #e2e8f0;
+      padding: 16px 20px; margin: 0;
+      overflow-x: auto; font-size: 13px; line-height: 1.65;
+      border-radius: 0;
+    }
+    .code-section pre { border-radius: 0; border: none; }
+
+    /* SQL keyword coloring via spans */
+    .kw  { color: #63b3ed; }   /* SELECT, FROM, WHERE, WITH, AS, etc. */
+    .fn  { color: #68d391; }   /* functions: lpad, cast, avg, max, etc. */
+    .str { color: #fbd38d; }   /* string literals */
+    .cm  { color: #718096; font-style: italic; } /* comments */
+    .ref { color: #f6ad55; }   /* {{ ref() }} / {{ source() }} */
+    .r-fn   { color: #68d391; }
+    .r-str  { color: #fbd38d; }
+    .r-pkg  { color: #f6ad55; }
+    .r-cm   { color: #718096; font-style: italic; }
+    .r-txn  { color: #9ae6b4; font-weight: bold; }   /* dbWithTransaction */
+
+    /* ── Collapsible code sections ── */
+    details.code-section { border-radius: 6px; overflow: hidden; border: 1px solid #2d3748; margin: 8px 0; }
+    details.code-section summary {
+      display: flex; align-items: center; justify-content: space-between;
+      cursor: pointer; list-style: none; user-select: none;
+    }
+    details.code-section summary::-webkit-details-marker { display: none; }
+    details.code-section summary .toggle-icon {
+      font-size: 11px; color: #718096; padding-right: 14px; transition: transform 0.15s;
+    }
+    details.code-section[open] summary .toggle-icon { transform: rotate(180deg); }
+    details.code-section summary .code-label {
+      flex: 1; cursor: pointer;
     }
 
-    .pill-list { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+    /* ── Info / warn boxes ── */
+    .info-box {
+      background: #ebf8ff; border-left: 4px solid #4299e1;
+      padding: 12px 16px; border-radius: 0 6px 6px 0;
+      margin: 14px 0; font-size: 13px; color: #2a4365; line-height: 1.6;
+    }
+    .warn-box {
+      background: #fffbeb; border-left: 4px solid #f6ad55;
+      padding: 12px 16px; border-radius: 0 6px 6px 0;
+      margin: 14px 0; font-size: 13px; color: #7b341e; line-height: 1.6;
+    }
+
+    /* ── Column pills ── */
+    .pill-list { display: flex; flex-wrap: wrap; gap: 5px; margin: 8px 0 16px; }
     .pill {
-      font-size: 12px;
-      font-family: "SF Mono", "Fira Code", monospace;
-      background: #edf2f7;
-      color: #2d3748;
-      padding: 3px 10px;
-      border-radius: 12px;
+      font-size: 12px; font-family: "SF Mono", "Fira Code", monospace;
+      background: #edf2f7; color: #2d3748; padding: 3px 10px; border-radius: 12px;
     }
-    .pill.removed { background: #fed7d7; color: #9b2335; text-decoration: line-through; }
     .pill.added   { background: #c6f6d5; color: #276749; }
+    .pill.removed { background: #fed7d7; color: #9b2335; text-decoration: line-through; }
     .pill.changed { background: #fefcbf; color: #744210; }
 
-    .note-box {
-      background: #f7fafc;
-      border: 1px solid #e2e8f0;
-      border-radius: 6px;
-      padding: 14px 18px;
-      font-size: 13px;
-      color: #4a5568;
-      line-height: 1.6;
-      margin: 12px 0;
-    }
-    .note-box strong { color: #1a2332; }
+    /* ── Flow arrow ── */
+    .flow-arrow { text-align: center; color: #a0aec0; font-size: 20px; margin: 4px 0; }
 
+    /* ── Year grid ── */
     .year-grid {
-      display: grid;
-      grid-template-columns: 80px repeat(5, 1fr);
-      gap: 4px;
-      font-size: 12px;
-      margin: 12px 0;
+      display: grid; grid-template-columns: 200px repeat(5, 1fr);
+      gap: 4px; font-size: 12px; margin: 14px 0;
     }
-    .year-grid .yg-header {
-      background: #1a2332;
-      color: #e2e8f0;
-      padding: 6px 8px;
-      text-align: center;
-      font-weight: 600;
-      border-radius: 4px;
+    .yg-header {
+      background: #1a2332; color: #e2e8f0; padding: 7px 8px;
+      text-align: center; font-weight: 600; border-radius: 4px;
     }
-    .year-grid .yg-label {
-      padding: 6px 8px;
-      font-weight: 600;
-      color: #4a5568;
-      display: flex;
-      align-items: center;
+    .yg-label {
+      padding: 7px 8px; font-size: 12px; color: #4a5568;
+      display: flex; align-items: center; font-weight: 600;
     }
     .yg-cell {
-      padding: 6px 8px;
-      text-align: center;
-      border-radius: 4px;
-      font-size: 11px;
-      font-weight: 600;
+      padding: 6px 4px; text-align: center; border-radius: 4px;
+      font-size: 11px; font-weight: 600;
     }
-    .yg-full     { background: #c6f6d5; color: #276749; }
-    .yg-screen   { background: #bee3f8; color: #2a4365; }
-    .yg-annual   { background: #e9d8fd; color: #44337a; }
-    .yg-empty    { background: #f7fafc; color: #a0aec0; }
+    .yg-full   { background: #c6f6d5; color: #276749; }
+    .yg-screen { background: #bee3f8; color: #2a4365; }
+    .yg-annual { background: #e9d8fd; color: #44337a; }
+    .yg-empty  { background: #f7fafc; color: #a0aec0; }
   </style>
 </head>
 <body>
 
 <nav>
-  <div class="logo">
-    Epi Pipeline
-    <span>Data Guide</span>
-  </div>
+  <div class="logo">Epi Pipeline<span>Data Guide</span></div>
   <ul>
     <li><a href="#overview">Overview</a></li>
-    <li><a href="#raw-places" class="active">Raw — PLACES</a></li>
-    <li><a href="#raw-epa">Raw — EPA PM2.5</a></li>
-    <li><a href="#staging-places">Staging — PLACES</a></li>
-    <li><a href="#staging-epa">Staging — EPA</a></li>
+    <li><a href="#ingest-places">Ingest — PLACES</a></li>
+    <li><a href="#ingest-epa">Ingest — EPA PM2.5</a></li>
+    <li><a href="#stg-places">Staging — PLACES</a></li>
+    <li><a href="#stg-epa">Staging — EPA</a></li>
     <li><a href="#intermediate">Intermediate</a></li>
     <li><a href="#mart">Mart</a></li>
     <li><a href="#year-coverage">Year Coverage</a></li>
@@ -180,237 +159,324 @@
   <h1>Data Pipeline Guide</h1>
   <p class="subtitle">Raw CSV → PostgreSQL → dbt staging → intermediate → mart</p>
 
-  <!-- ── Overview ─────────────────────────────────────────────────────────── -->
-
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
   <section id="overview">
     <h2>Overview</h2>
-    <p>
-      Two public datasets — CDC PLACES county health data and EPA AQS annual air quality
-      summaries — are ingested as raw CSVs into PostgreSQL and transformed through three
-      dbt layers into a single wide analysis table.
-    </p>
+    <p>Two public datasets flow through four database layers to produce a single wide analysis table consumed by the Quarto report and Shiny dashboard.</p>
 
-    <div class="stat-row">
-      <div class="stat">
-        <div class="stat-val">2</div>
-        <div class="stat-lbl">Source datasets</div>
-      </div>
-      <div class="stat">
-        <div class="stat-val">4</div>
-        <div class="stat-lbl">DB layers</div>
-      </div>
-      <div class="stat">
-        <div class="stat-val">15,444</div>
-        <div class="stat-lbl">Final mart rows</div>
-      </div>
-      <div class="stat">
-        <div class="stat-val">33</div>
-        <div class="stat-lbl">Mart columns</div>
-      </div>
-    </div>
-
-    <div class="pipeline-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Layer</th>
-            <th>Schema</th>
-            <th>Tables</th>
-            <th>Rows</th>
-            <th>Grain</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><span class="badge badge-yellow">Raw</span></td>
-            <td><code>raw</code></td>
-            <td><code>places_county</code>, <code>epa_pm25</code></td>
-            <td>595k + 147k</td>
-            <td>Source file row (all text)</td>
-          </tr>
-          <tr>
-            <td><span class="badge badge-blue">Staging</span></td>
-            <td><code>public_staging</code></td>
-            <td><code>stg_places_county</code>, <code>stg_epa_pm25</code></td>
-            <td>298k + 129k</td>
-            <td>county × year × measure (long)</td>
-          </tr>
-          <tr>
-            <td><span class="badge badge-gray">Intermediate</span></td>
-            <td><code>public_intermediate</code></td>
-            <td><code>int_places_epa_join</code></td>
-            <td>298k</td>
-            <td>county × year × measure (long + PM2.5)</td>
-          </tr>
-          <tr>
-            <td><span class="badge badge-green">Mart</span></td>
-            <td><code>public_marts</code></td>
-            <td><code>mart_epi_analysis</code></td>
-            <td>15,444</td>
-            <td>county × year (wide)</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </section>
-
-  <!-- ── Raw: PLACES ───────────────────────────────────────────────────────── -->
-
-  <section id="raw-places">
-    <div class="layer-header">
-      <span class="layer-tag tag-raw">Raw</span>
-      <h2>raw.places_county</h2>
-    </div>
-    <p class="schema-label">Loaded by <span class="filepath">ingestion/load_places.R</span></p>
-
-    <p>
-      CDC PLACES county data loaded directly from CSV with no transformations — all columns
-      stored as <code>TEXT</code> to preserve source fidelity. One row per county × year ×
-      measure × data value type.
-    </p>
-
-    <div class="stat-row">
-      <div class="stat"><div class="stat-val">595,436</div><div class="stat-lbl">Rows</div></div>
-      <div class="stat"><div class="stat-val">23</div><div class="stat-lbl">Columns</div></div>
-      <div class="stat"><div class="stat-val">5</div><div class="stat-lbl">Years (2019–2023)</div></div>
-      <div class="stat"><div class="stat-val">35</div><div class="stat-lbl">Distinct measures</div></div>
-    </div>
-
-    <h3>Key columns</h3>
     <table>
-      <thead><tr><th>Column</th><th>Type</th><th>Example</th></tr></thead>
+      <thead>
+        <tr><th>Step</th><th>Layer</th><th>Schema</th><th>Table(s)</th><th>Rows</th><th>Grain</th></tr>
+      </thead>
       <tbody>
-        <tr><td><code>locationid</code></td><td>TEXT</td><td><code>1001</code> — raw FIPS, no leading zeros</td></tr>
-        <tr><td><code>locationname</code></td><td>TEXT</td><td><code>Autauga County</code></td></tr>
-        <tr><td><code>stateabbr</code></td><td>TEXT</td><td><code>AL</code></td></tr>
-        <tr><td><code>year</code></td><td>TEXT</td><td><code>2021</code></td></tr>
-        <tr><td><code>measureid</code></td><td>TEXT</td><td><code>OBESITY</code></td></tr>
-        <tr><td><code>data_value</code></td><td>TEXT</td><td><code>36.4</code> — stored as text</td></tr>
-        <tr><td><code>datavaluetypeid</code></td><td>TEXT</td><td><code>AgeAdjPrv</code> or <code>CrdPrv</code></td></tr>
-        <tr><td><code>low_confidence_limit</code></td><td>TEXT</td><td><code>34.9</code></td></tr>
-        <tr><td><code>high_confidence_limit</code></td><td>TEXT</td><td><code>37.9</code></td></tr>
-        <tr><td><code>loaded_at</code></td><td>TEXT</td><td>Ingestion timestamp</td></tr>
+        <tr>
+          <td>1–2</td>
+          <td><span class="badge badge-yellow">Ingestion</span></td>
+          <td><code>raw</code></td>
+          <td><code>places_county</code>, <code>epa_pm25</code></td>
+          <td>595k + 147k</td>
+          <td>Source file row · all TEXT</td>
+        </tr>
+        <tr>
+          <td>3–4</td>
+          <td><span class="badge badge-blue">Staging</span></td>
+          <td><code>public_staging</code></td>
+          <td><code>stg_places_county</code>, <code>stg_epa_pm25</code></td>
+          <td>298k + 129k</td>
+          <td>county × year × measure (long)</td>
+        </tr>
+        <tr>
+          <td>5</td>
+          <td><span class="badge badge-gray">Intermediate</span></td>
+          <td><code>public_intermediate</code></td>
+          <td><code>int_places_epa_join</code></td>
+          <td>298k</td>
+          <td>county × year × measure + PM2.5 cols</td>
+        </tr>
+        <tr>
+          <td>6</td>
+          <td><span class="badge badge-green">Mart</span></td>
+          <td><code>public_marts</code></td>
+          <td><code>mart_epi_analysis</code></td>
+          <td>15,444</td>
+          <td>county × year (wide)</td>
+        </tr>
       </tbody>
     </table>
-
-    <h3>Idempotency</h3>
-    <p>
-      The ingestion script guards against duplicate loads. Before inserting a year's data
-      it compares the incoming row count against what is already in the table for that year:
-    </p>
-    <ul class="transform-list">
-      <li>Row counts match → skip, no action taken</li>
-      <li>Row counts differ → delete that year's rows, re-insert</li>
-      <li>Year not present → insert directly</li>
-    </ul>
-    <p>
-      Columns added in later CDC releases (not present when the table was first created) are
-      automatically added with <code>ALTER TABLE ... ADD COLUMN IF NOT EXISTS TEXT</code>
-      before the append.
-    </p>
   </section>
 
-  <!-- ── Raw: EPA ──────────────────────────────────────────────────────────── -->
-
-  <section id="raw-epa">
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <section id="ingest-places">
     <div class="layer-header">
-      <span class="layer-tag tag-raw">Raw</span>
-      <h2>raw.epa_pm25</h2>
+      <span class="layer-tag tag-raw">Step 1 · Ingestion</span>
+      <h2>raw.places_county</h2>
     </div>
-    <p class="schema-label">Loaded by <span class="filepath">ingestion/load_epa_pm25.R</span></p>
+    <p class="schema-label">ingestion/load_places.R</p>
 
-    <p>
-      EPA AQS annual concentration-by-monitor files. Each row is one monitoring station for
-      one year, pre-filtered at ingestion to three pollutant parameters. All columns stored
-      as <code>TEXT</code>. Column names retain the original EPA spacing (e.g.,
-      <code>State Code</code>, <code>Arithmetic Mean</code>).
-    </p>
+    <p>Reads a CDC PLACES county CSV from <code>data/raw/</code>, stamps a <code>loaded_at</code> timestamp, casts every column to TEXT, and loads into <code>raw.places_county</code>. All type casting and filtering happens downstream in dbt — the raw table is a faithful copy of the source file.</p>
 
     <div class="stat-row">
-      <div class="stat"><div class="stat-val">147,089</div><div class="stat-lbl">Rows</div></div>
-      <div class="stat"><div class="stat-val">56</div><div class="stat-lbl">Columns</div></div>
-      <div class="stat"><div class="stat-val">6</div><div class="stat-lbl">Years (2019–2024)</div></div>
-      <div class="stat"><div class="stat-val">3</div><div class="stat-lbl">Parameters</div></div>
+      <div class="stat"><div class="stat-val">595,436</div><div class="stat-lbl">Rows loaded</div></div>
+      <div class="stat"><div class="stat-val">23</div><div class="stat-lbl">Columns (all TEXT)</div></div>
+      <div class="stat"><div class="stat-val">5</div><div class="stat-lbl">Years (2019–2023)</div></div>
     </div>
 
-    <h3>Parameter filter applied at ingestion</h3>
+    <h3>Idempotency logic <small style="font-weight:400;color:#718096">(runs outside the transaction)</small></h3>
+    <p>Before opening a transaction the script compares the incoming row count to what's already in the table for that year:</p>
+    <ul class="steps">
+      <li>
+        <div class="step-num">1</div>
+        <div class="step-body"><strong>Row counts match</strong> <span>→ log SKIP and exit cleanly. Nothing written.</span></div>
+      </li>
+      <li>
+        <div class="step-num">2</div>
+        <div class="step-body"><strong>Year exists, counts differ</strong> <span>→ enter transaction: DELETE that year, then re-insert.</span></div>
+      </li>
+      <li>
+        <div class="step-num">3</div>
+        <div class="step-body"><strong>Year not present</strong> <span>→ enter transaction: insert directly (no delete needed).</span></div>
+      </li>
+    </ul>
+
+    <h3>Transaction scope</h3>
+    <p>The <code>dbWithTransaction()</code> block wraps three operations atomically. If <code>dbWriteTable()</code> fails after a <code>DELETE</code>, Postgres rolls back — the year's data is never lost.</p>
+
+    <details class="code-section" open>
+      <summary><div class="code-label label-outside">Outside transaction — reads only</div><span class="toggle-icon">▼</span></summary>
+      <pre><code><span class="r-pkg">con</span> &lt;- <span class="r-fn">get_con</span>()
+<span class="r-fn">on.exit</span>(<span class="r-fn">dbDisconnect</span>(con))
+
+<span class="r-fn">dbExecute</span>(con, <span class="r-str">"CREATE SCHEMA IF NOT EXISTS raw"</span>)
+
+incoming_year &lt;- <span class="r-fn">unique</span>(filtered$year)
+incoming_rows &lt;- <span class="r-fn">nrow</span>(filtered)
+table_exists  &lt;- <span class="r-fn">dbExistsTable</span>(con, <span class="r-fn">Id</span>(schema = TARGET_SCHEMA, table = TARGET_TABLE))
+existing_rows &lt;- 0L
+
+<span class="r-cm"># Read existing row count for this year (if table exists)</span>
+<span class="r-fn">if</span> (table_exists) {
+  existing_rows &lt;- <span class="r-fn">dbGetQuery</span>(con,
+    <span class="r-str">"SELECT COUNT(*) AS n FROM raw.places_county WHERE year = $1"</span>,
+    params = <span class="r-fn">list</span>(incoming_year)
+  )$n
+
+  <span class="r-fn">if</span> (existing_rows == incoming_rows) {
+    <span class="r-fn">log_msg</span>(<span class="r-fn">sprintf</span>(<span class="r-str">"SKIP: Year %s already loaded (%d rows match)."</span>, incoming_year, incoming_rows))
+    <span class="r-fn">quit</span>(save = <span class="r-str">"no"</span>, status = 0)
+  }
+}</code></pre>
+    </details>
+
+    <details class="code-section" open>
+      <summary><div class="code-label label-txn">Inside dbWithTransaction — atomic: delete + schema migration + insert</div><span class="toggle-icon">▼</span></summary>
+      <pre><code><span class="r-txn">dbWithTransaction</span>(con, {
+
+  <span class="r-cm"># 1. Delete stale year if row count changed</span>
+  <span class="r-fn">if</span> (existing_rows > 0) {
+    <span class="r-fn">dbExecute</span>(con,
+      <span class="r-str">"DELETE FROM raw.places_county WHERE year = $1"</span>,
+      params = <span class="r-fn">list</span>(incoming_year)
+    )
+  }
+
+  <span class="r-cm"># 2. Add any new columns the source file introduced</span>
+  <span class="r-fn">if</span> (table_exists) {
+    new_cols &lt;- <span class="r-fn">setdiff</span>(<span class="r-fn">names</span>(filtered), <span class="r-fn">dbListFields</span>(con, <span class="r-fn">Id</span>(schema = TARGET_SCHEMA, table = TARGET_TABLE)))
+    <span class="r-fn">walk</span>(new_cols, \(col) {
+      <span class="r-fn">dbExecute</span>(con, <span class="r-fn">paste</span>(
+        <span class="r-str">"ALTER TABLE"</span>, <span class="r-fn">paste0</span>(<span class="r-fn">dbQuoteIdentifier</span>(con, TARGET_SCHEMA), <span class="r-str">"."</span>, <span class="r-fn">dbQuoteIdentifier</span>(con, TARGET_TABLE)),
+        <span class="r-str">"ADD COLUMN IF NOT EXISTS"</span>, <span class="r-fn">dbQuoteIdentifier</span>(con, col), <span class="r-str">"TEXT"</span>
+      ))
+    })
+  }
+
+  <span class="r-cm"># 3. Append rows</span>
+  <span class="r-fn">dbWriteTable</span>(con,
+    name      = <span class="r-fn">Id</span>(schema = TARGET_SCHEMA, table = TARGET_TABLE),
+    value     = filtered,
+    append    = TRUE,
+    row.names = FALSE
+  )
+
+})</code></pre>
+    </details>
+
+    <h3>Raw schema — raw.places_county</h3>
+    <p>All 23 columns stored as TEXT. Key columns referenced downstream:</p>
+    <div class="pill-list">
+      <span class="pill">locationid</span>
+      <span class="pill">locationname</span>
+      <span class="pill">stateabbr</span>
+      <span class="pill">statedesc</span>
+      <span class="pill">year</span>
+      <span class="pill">measureid</span>
+      <span class="pill">datavaluetypeid</span>
+      <span class="pill">data_value</span>
+      <span class="pill">low_confidence_limit</span>
+      <span class="pill">high_confidence_limit</span>
+      <span class="pill">totalpopulation</span>
+      <span class="pill">categoryid</span>
+      <span class="pill">loaded_at</span>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <section id="ingest-epa">
+    <div class="layer-header">
+      <span class="layer-tag tag-raw">Step 2 · Ingestion</span>
+      <h2>raw.epa_pm25</h2>
+    </div>
+    <p class="schema-label">ingestion/load_epa_pm25.R</p>
+
+    <p>Reads one year of EPA AQS annual-concentration-by-monitor data. Filters to three pollutant parameter codes in R before writing to Postgres — this is the only transformation that happens at ingestion. Everything else (FIPS construction, type casting, column pruning) is deferred to dbt staging.</p>
+
+    <div class="stat-row">
+      <div class="stat"><div class="stat-val">147,089</div><div class="stat-lbl">Rows loaded</div></div>
+      <div class="stat"><div class="stat-val">56</div><div class="stat-lbl">Columns (all TEXT)</div></div>
+      <div class="stat"><div class="stat-val">6</div><div class="stat-lbl">Years (2019–2024)</div></div>
+      <div class="stat"><div class="stat-val">3</div><div class="stat-lbl">Parameters kept</div></div>
+    </div>
+
+    <h3>Parameter filter (in R, before DB write)</h3>
     <table>
-      <thead><tr><th>Code</th><th>Pollutant</th><th>Why included</th></tr></thead>
+      <thead><tr><th>Code</th><th>Pollutant</th><th>Role in analysis</th></tr></thead>
       <tbody>
         <tr><td><code>88101</code></td><td>PM2.5</td><td>Primary exposure variable</td></tr>
-        <tr><td><code>44201</code></td><td>Ozone</td><td>Co-pollutant for confounding</td></tr>
+        <tr><td><code>44201</code></td><td>Ozone</td><td>Co-pollutant / confounding</td></tr>
         <tr><td><code>42602</code></td><td>NO2</td><td>Traffic-related air pollution proxy</td></tr>
       </tbody>
     </table>
 
-    <div class="info-box">
-      The raw EPA file has 56 columns per monitor, including percentile distributions,
-      exceedance counts, and max-value timestamps. Most are dropped in staging — only the
-      columns needed for county-level aggregation are carried forward.
-    </div>
+    <details class="code-section" open>
+      <summary><div class="code-label label-outside">R filter — before any DB call</div><span class="toggle-icon">▼</span></summary>
+      <pre><code>filtered &lt;- raw <span class="r-fn">%>%</span>
+  <span class="r-fn">filter</span>(`Parameter Code` <span class="r-fn">%in%</span> <span class="r-fn">c</span>(88101, 44201, 42602)) <span class="r-fn">%>%</span>
+  <span class="r-fn">mutate</span>(loaded_at = <span class="r-fn">as.character</span>(<span class="r-fn">Sys.time</span>())) <span class="r-fn">%>%</span>
+  <span class="r-fn">map_dfc</span>(as.character)   <span class="r-cm"># cast all cols to TEXT before writing</span></code></pre>
+    </details>
 
-    <h3>Key columns retained through the pipeline</h3>
-    <table>
-      <thead><tr><th>Raw column name</th><th>Notes</th></tr></thead>
-      <tbody>
-        <tr><td><code>State Code</code></td><td>2-digit state FIPS — needs leading zero pad</td></tr>
-        <tr><td><code>County Code</code></td><td>3-digit county FIPS — needs leading zero pad</td></tr>
-        <tr><td><code>Parameter Code</code></td><td>Pollutant identifier (88101 / 44201 / 42602)</td></tr>
-        <tr><td><code>Parameter Name</code></td><td>Human-readable pollutant name</td></tr>
-        <tr><td><code>Year</code></td><td>Measurement year</td></tr>
-        <tr><td><code>Arithmetic Mean</code></td><td>Annual mean concentration at this station</td></tr>
-        <tr><td><code>Observation Percent</code></td><td>% of valid observations — used for coverage filter in staging</td></tr>
-      </tbody>
-    </table>
+    <details class="code-section" open>
+      <summary><div class="code-label label-txn">Inside dbWithTransaction — atomic: delete + schema migration + insert</div><span class="toggle-icon">▼</span></summary>
+      <pre><code><span class="r-txn">dbWithTransaction</span>(con, {
+
+  <span class="r-cm"># 1. Delete stale year if row count changed</span>
+  <span class="r-fn">if</span> (existing_rows > 0) {
+    <span class="r-fn">dbExecute</span>(con,
+      <span class="r-str">"DELETE FROM raw.epa_pm25 WHERE \"Year\" = $1"</span>,
+      params = <span class="r-fn">list</span>(incoming_year)
+    )
+  }
+
+  <span class="r-cm"># 2. Add any new columns the source file introduced</span>
+  <span class="r-fn">if</span> (table_exists) {
+    new_cols &lt;- <span class="r-fn">setdiff</span>(<span class="r-fn">names</span>(filtered), <span class="r-fn">dbListFields</span>(con, <span class="r-fn">Id</span>(schema = TARGET_SCHEMA, table = TARGET_TABLE)))
+    <span class="r-fn">walk</span>(new_cols, \(col) {
+      <span class="r-fn">dbExecute</span>(con, <span class="r-fn">paste</span>(
+        <span class="r-str">"ALTER TABLE"</span>, <span class="r-fn">paste0</span>(<span class="r-fn">dbQuoteIdentifier</span>(con, TARGET_SCHEMA), <span class="r-str">"."</span>, <span class="r-fn">dbQuoteIdentifier</span>(con, TARGET_TABLE)),
+        <span class="r-str">"ADD COLUMN IF NOT EXISTS"</span>, <span class="r-fn">dbQuoteIdentifier</span>(con, col), <span class="r-str">"TEXT"</span>
+      ))
+    })
+  }
+
+  <span class="r-cm"># 3. Append rows</span>
+  <span class="r-fn">dbWriteTable</span>(con,
+    name      = <span class="r-fn">Id</span>(schema = TARGET_SCHEMA, table = TARGET_TABLE),
+    value     = filtered,
+    append    = TRUE,
+    row.names = FALSE
+  )
+
+})</code></pre>
+    </details>
+
+    <h3>Raw schema — raw.epa_pm25</h3>
+    <p>All 56 columns stored as TEXT with original EPA column names (spaces preserved). Only a subset survives into staging:</p>
+    <div class="pill-list">
+      <span class="pill">State Code</span>
+      <span class="pill">County Code</span>
+      <span class="pill">Parameter Code</span>
+      <span class="pill">Parameter Name</span>
+      <span class="pill">Year</span>
+      <span class="pill">Arithmetic Mean</span>
+      <span class="pill">Observation Count</span>
+      <span class="pill">Observation Percent</span>
+      <span class="pill">Sample Duration</span>
+      <span class="pill">Pollutant Standard</span>
+      <span class="pill">Units of Measure</span>
+      <span class="pill">Completeness Indicator</span>
+      <span class="pill">Latitude</span>
+      <span class="pill">Longitude</span>
+      <span class="pill removed">+ 42 unused columns</span>
+    </div>
   </section>
 
-  <!-- ── Staging: PLACES ───────────────────────────────────────────────────── -->
-
-  <section id="staging-places">
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <section id="stg-places">
     <div class="layer-header">
-      <span class="layer-tag tag-staging">Staging</span>
+      <span class="layer-tag tag-staging">Step 3 · Staging</span>
       <h2>stg_places_county</h2>
     </div>
-    <p class="schema-label">
-      <span class="filepath">dbt/models/staging/stg_places_county.sql</span>
-      &nbsp;·&nbsp; materialized as <strong>view</strong>
-    </p>
-
-    <p>
-      Cleans, renames, and types the raw PLACES data. Filters to age-adjusted prevalence only
-      to ensure comparability across counties with different demographic profiles.
-    </p>
+    <p class="schema-label">dbt/models/staging/stg_places_county.sql · materialized as view</p>
 
     <div class="stat-row">
-      <div class="stat"><div class="stat-val">595,436</div><div class="stat-lbl">Raw rows in</div></div>
+      <div class="stat"><div class="stat-val">595,436</div><div class="stat-lbl">Rows in</div></div>
       <div class="stat"><div class="stat-val">297,685</div><div class="stat-lbl">Rows out</div></div>
       <div class="stat"><div class="stat-val">23 → 17</div><div class="stat-lbl">Columns</div></div>
     </div>
 
     <div class="info-box">
-      <strong>Why half the rows are dropped:</strong> CDC PLACES publishes each measure twice —
-      once as age-adjusted prevalence (<code>AgeAdjPrv</code>) and once as crude prevalence
-      (<code>CrdPrv</code>). Staging keeps only <code>AgeAdjPrv</code> so downstream models
-      don't need to filter or accidentally double-count.
+      <strong>Why rows are halved:</strong> CDC PLACES publishes each measure twice per county-year —
+      age-adjusted prevalence (<code>AgeAdjPrv</code>) and crude prevalence (<code>CrdPrv</code>).
+      This model keeps only age-adjusted so downstream joins and pivots don't double-count
+      or require an extra filter.
     </div>
 
-    <h3>Transformations</h3>
-    <ul class="transform-list">
-      <li><strong>FIPS padding:</strong> <code>lpad(cast(locationid as varchar), 5, '0')</code> — fixes missing leading zeros (e.g. <code>1001</code> → <code>01001</code>)</li>
-      <li><strong>Year cast:</strong> <code>TEXT → INTEGER</code></li>
-      <li><strong>data_value cast:</strong> <code>TEXT → NUMERIC</code></li>
-      <li><strong>CI columns cast:</strong> <code>low_confidence_limit / high_confidence_limit → NUMERIC</code></li>
-      <li><strong>population cast:</strong> <code>totalpopulation → INTEGER</code></li>
-      <li><strong>Column renames:</strong> <code>stateabbr → state_abbr</code>, <code>statedesc → state_name</code>, <code>locationname → county_name</code>, <code>measureid → measure_id</code>, etc.</li>
-      <li><strong>Null filter:</strong> rows with <code>data_value IS NULL</code> removed</li>
-      <li><strong>Data value type filter:</strong> keep <code>datavaluetypeid = 'AgeAdjPrv'</code> only</li>
-      <li><strong>Columns dropped:</strong> <code>geolocation</code>, <code>data_value_footnote</code>, <code>data_value_footnote_symbol</code>, <code>data_value_unit</code>, <code>totalpop18plus</code>, <code>datasource</code></li>
-    </ul>
+    <details class="code-section" open>
+      <summary><div class="code-label label-sql">dbt/models/staging/stg_places_county.sql</div><span class="toggle-icon">▼</span></summary>
+      <pre><code><span class="kw">with</span> source <span class="kw">as</span> (
+    <span class="kw">select</span> * <span class="kw">from</span> <span class="ref">{{ source('raw', 'places_county') }}</span>
+),
 
-    <h3>Output schema</h3>
+cleaned <span class="kw">as</span> (
+    <span class="kw">select</span>
+        <span class="cm">-- FIPS: pad locationid to 5 digits (source has no leading zeros)</span>
+        <span class="fn">lpad</span>(<span class="fn">cast</span>(locationid <span class="kw">as</span> varchar), 5, <span class="str">'0'</span>)  <span class="kw">as</span> county_fips,
+
+        <span class="fn">cast</span>(year <span class="kw">as</span> integer)                        <span class="kw">as</span> year,
+        stateabbr                                      <span class="kw">as</span> state_abbr,
+        statedesc                                      <span class="kw">as</span> state_name,
+        locationname                                   <span class="kw">as</span> county_name,
+        category,
+        categoryid                                     <span class="kw">as</span> category_id,
+        measure,
+        measureid                                      <span class="kw">as</span> measure_id,
+        short_question_text,
+        data_value_type,
+        datavaluetypeid                                <span class="kw">as</span> data_value_type_id,
+        <span class="fn">cast</span>(data_value <span class="kw">as</span> numeric)                   <span class="kw">as</span> data_value,
+        <span class="fn">cast</span>(low_confidence_limit <span class="kw">as</span> numeric)         <span class="kw">as</span> ci_low,
+        <span class="fn">cast</span>(high_confidence_limit <span class="kw">as</span> numeric)        <span class="kw">as</span> ci_high,
+        <span class="fn">cast</span>(totalpopulation <span class="kw">as</span> integer)              <span class="kw">as</span> population_count,
+        loaded_at
+
+    <span class="kw">from</span> source
+    <span class="kw">where</span> data_value <span class="kw">is not null</span>
+),
+
+<span class="cm">-- Keep age-adjusted prevalence only for comparability across counties</span>
+age_adjusted <span class="kw">as</span> (
+    <span class="kw">select</span> *
+    <span class="kw">from</span> cleaned
+    <span class="kw">where</span> data_value_type_id = <span class="str">'AgeAdjPrv'</span>
+)
+
+<span class="kw">select</span> * <span class="kw">from</span> age_adjusted</code></pre>
+    </details>
+
+    <h3>Output columns</h3>
     <div class="pill-list">
-      <span class="pill added">county_fips</span>
-      <span class="pill added">year (int)</span>
+      <span class="pill added">county_fips (padded)</span>
+      <span class="pill changed">year (int)</span>
       <span class="pill">state_abbr</span>
       <span class="pill">state_name</span>
       <span class="pill">county_name</span>
@@ -421,60 +487,89 @@
       <span class="pill">short_question_text</span>
       <span class="pill">data_value_type</span>
       <span class="pill">data_value_type_id</span>
-      <span class="pill added">data_value (numeric)</span>
+      <span class="pill changed">data_value (numeric)</span>
       <span class="pill added">ci_low (numeric)</span>
       <span class="pill added">ci_high (numeric)</span>
-      <span class="pill added">population_count (int)</span>
+      <span class="pill changed">population_count (int)</span>
       <span class="pill">loaded_at</span>
+    </div>
+    <div class="pill-list">
+      <span class="pill removed">geolocation</span>
+      <span class="pill removed">data_value_footnote</span>
+      <span class="pill removed">data_value_footnote_symbol</span>
+      <span class="pill removed">data_value_unit</span>
+      <span class="pill removed">totalpop18plus</span>
+      <span class="pill removed">datasource</span>
     </div>
   </section>
 
-  <!-- ── Staging: EPA ──────────────────────────────────────────────────────── -->
-
-  <section id="staging-epa">
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <section id="stg-epa">
     <div class="layer-header">
-      <span class="layer-tag tag-staging">Staging</span>
+      <span class="layer-tag tag-staging">Step 4 · Staging</span>
       <h2>stg_epa_pm25</h2>
     </div>
-    <p class="schema-label">
-      <span class="filepath">dbt/models/staging/stg_epa_pm25.sql</span>
-      &nbsp;·&nbsp; materialized as <strong>view</strong>
-    </p>
-
-    <p>
-      Constructs county FIPS from state and county codes, renames and types the
-      columns needed for downstream aggregation, drops the 40+ columns not used
-      in the analysis, and removes stations with insufficient observation coverage.
-    </p>
+    <p class="schema-label">dbt/models/staging/stg_epa_pm25.sql · materialized as view</p>
 
     <div class="stat-row">
-      <div class="stat"><div class="stat-val">147,089</div><div class="stat-lbl">Raw rows in</div></div>
+      <div class="stat"><div class="stat-val">147,089</div><div class="stat-lbl">Rows in</div></div>
       <div class="stat"><div class="stat-val">128,781</div><div class="stat-lbl">Rows out</div></div>
       <div class="stat"><div class="stat-val">56 → 16</div><div class="stat-lbl">Columns</div></div>
     </div>
 
     <div class="info-box">
-      <strong>Coverage filter:</strong> stations where <code>Observation Percent &lt; 75</code>
-      are removed. EPA guidance defines 75% valid observations as the minimum threshold for a
-      representative annual mean. Removing low-coverage stations prevents sparse or malfunctioning
-      monitors from distorting the county-level aggregation in the intermediate layer.
+      <strong>Coverage filter:</strong> stations where <code>obs_pct &lt; 75</code> are dropped.
+      EPA guidance sets 75% valid observations as the minimum for a representative annual mean.
+      This removes ~12% of rows and prevents sparse or malfunctioning monitors from skewing the
+      county-level aggregation in the next step.
     </div>
 
-    <h3>Transformations</h3>
-    <ul class="transform-list">
-      <li><strong>FIPS construction:</strong> <code>lpad("State Code", 2, '0') || lpad("County Code", 3, '0')</code> — produces standard 5-digit FIPS</li>
-      <li><strong>Column renames:</strong> all space-separated EPA names → <code>snake_case</code> (e.g. <code>Arithmetic Mean → arithmetic_mean</code>)</li>
-      <li><strong>Type casts:</strong> <code>Year → INTEGER</code>, <code>Arithmetic Mean → NUMERIC</code>, <code>Observation Count → INTEGER</code>, <code>Observation Percent → NUMERIC</code>, <code>Latitude/Longitude → NUMERIC</code></li>
-      <li><strong>Coverage filter:</strong> <code>obs_pct &lt; 75</code> rows removed (~12% of rows)</li>
-      <li><strong>Null filter:</strong> rows with <code>Arithmetic Mean IS NULL</code> removed</li>
-      <li><strong>40 columns dropped:</strong> percentile distributions, exceedance counts, max-value timestamps, method name, datum, site address, CBSA name, etc.</li>
-    </ul>
+    <details class="code-section" open>
+      <summary><div class="code-label label-sql">dbt/models/staging/stg_epa_pm25.sql</div><span class="toggle-icon">▼</span></summary>
+      <pre><code><span class="kw">with</span> source <span class="kw">as</span> (
+    <span class="kw">select</span> * <span class="kw">from</span> <span class="ref">{{ source('raw', 'epa_pm25') }}</span>
+),
 
-    <h3>Output schema</h3>
-    <p>Grain: one row per monitoring <strong>station</strong> × year × parameter. Still station-level — aggregation to county happens in the intermediate layer.</p>
+cleaned <span class="kw">as</span> (
+    <span class="kw">select</span>
+        <span class="cm">-- Construct 5-digit FIPS from separate state + county codes</span>
+        <span class="fn">lpad</span>("State Code", 2, <span class="str">'0'</span>) || <span class="fn">lpad</span>("County Code", 3, <span class="str">'0'</span>)  <span class="kw">as</span> county_fips,
+
+        <span class="fn">cast</span>("Year" <span class="kw">as</span> integer)                      <span class="kw">as</span> year,
+        "State Code"                                   <span class="kw">as</span> state_code,
+        "County Code"                                  <span class="kw">as</span> county_code,
+        "Parameter Name"                               <span class="kw">as</span> parameter_name,
+        "Parameter Code"                               <span class="kw">as</span> parameter_code,
+        "Sample Duration"                              <span class="kw">as</span> sample_duration,
+        "Pollutant Standard"                           <span class="kw">as</span> pollutant_standard,
+        "Units of Measure"                             <span class="kw">as</span> units_of_measure,
+        <span class="fn">cast</span>("Arithmetic Mean" <span class="kw">as</span> numeric)            <span class="kw">as</span> arithmetic_mean,
+        <span class="fn">cast</span>("Observation Count" <span class="kw">as</span> integer)          <span class="kw">as</span> obs_count,
+        <span class="fn">cast</span>("Observation Percent" <span class="kw">as</span> numeric)        <span class="kw">as</span> obs_pct,
+        "Completeness Indicator"                       <span class="kw">as</span> completeness_indicator,
+        <span class="fn">cast</span>("Latitude" <span class="kw">as</span> numeric)                   <span class="kw">as</span> latitude,
+        <span class="fn">cast</span>("Longitude" <span class="kw">as</span> numeric)                  <span class="kw">as</span> longitude,
+        loaded_at
+
+    <span class="kw">from</span> source
+    <span class="kw">where</span> "Arithmetic Mean" <span class="kw">is not null</span>
+),
+
+<span class="cm">-- Drop stations with < 75% valid observations (EPA coverage threshold)</span>
+sufficient_coverage <span class="kw">as</span> (
+    <span class="kw">select</span> *
+    <span class="kw">from</span> cleaned
+    <span class="kw">where</span> obs_pct >= 75
+)
+
+<span class="kw">select</span> * <span class="kw">from</span> sufficient_coverage</code></pre>
+    </details>
+
+    <h3>Output columns</h3>
+    <p>Still station-level grain — one row per monitor × year. Aggregation to county happens in the intermediate model.</p>
     <div class="pill-list">
-      <span class="pill added">county_fips</span>
-      <span class="pill added">year (int)</span>
+      <span class="pill added">county_fips (constructed)</span>
+      <span class="pill changed">year (int)</span>
       <span class="pill">state_code</span>
       <span class="pill">county_code</span>
       <span class="pill">parameter_name</span>
@@ -482,197 +577,176 @@
       <span class="pill">sample_duration</span>
       <span class="pill">pollutant_standard</span>
       <span class="pill">units_of_measure</span>
-      <span class="pill added">arithmetic_mean (numeric)</span>
-      <span class="pill added">obs_count (int)</span>
-      <span class="pill added">obs_pct (numeric)</span>
+      <span class="pill changed">arithmetic_mean (numeric)</span>
+      <span class="pill changed">obs_count (int)</span>
+      <span class="pill changed">obs_pct (numeric)</span>
       <span class="pill">completeness_indicator</span>
-      <span class="pill added">latitude (numeric)</span>
-      <span class="pill added">longitude (numeric)</span>
+      <span class="pill changed">latitude (numeric)</span>
+      <span class="pill changed">longitude (numeric)</span>
       <span class="pill">loaded_at</span>
+    </div>
+    <div class="pill-list">
+      <span class="pill removed">+ 40 dropped columns</span>
+      <span class="pill removed">percentile distributions (10th–99th)</span>
+      <span class="pill removed">exceedance counts</span>
+      <span class="pill removed">max-value timestamps</span>
+      <span class="pill removed">method name, datum, address, CBSA</span>
     </div>
   </section>
 
-  <!-- ── Intermediate ──────────────────────────────────────────────────────── -->
-
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
   <section id="intermediate">
     <div class="layer-header">
-      <span class="layer-tag tag-intermediate">Intermediate</span>
+      <span class="layer-tag tag-intermediate">Step 5 · Intermediate</span>
       <h2>int_places_epa_join</h2>
     </div>
-    <p class="schema-label">
-      <span class="filepath">dbt/models/intermediate/int_places_epa_join.sql</span>
-      &nbsp;·&nbsp; materialized as <strong>view</strong>
-    </p>
+    <p class="schema-label">dbt/models/intermediate/int_places_epa_join.sql · materialized as view</p>
 
-    <p>
-      Aggregates station-level PM2.5 readings to county-year means, then left-joins
-      the result onto PLACES county data. Output is still in long format —
-      one row per county × year × measure — with PM2.5 columns appended.
-    </p>
+    <p>Aggregates station-level PM2.5 readings to county-year means, then left-joins onto the PLACES staging model. Output is still long — one row per county × year × measure — with four PM2.5 columns appended.</p>
 
     <div class="stat-row">
       <div class="stat"><div class="stat-val">297,685</div><div class="stat-lbl">PLACES rows in</div></div>
       <div class="stat"><div class="stat-val">128,781</div><div class="stat-lbl">EPA station rows in</div></div>
       <div class="stat"><div class="stat-val">297,685</div><div class="stat-lbl">Rows out (left join)</div></div>
-      <div class="stat"><div class="stat-val">17 → 21</div><div class="stat-lbl">Columns (+ 4 PM2.5)</div></div>
+      <div class="stat"><div class="stat-val">+4</div><div class="stat-lbl">PM2.5 cols added</div></div>
     </div>
 
-    <h3>Step 1 — Aggregate EPA to county-year</h3>
-    <p>
-      The EPA staging table is station-level. Many counties have multiple monitors. Before
-      joining to PLACES (which is county-level), stations are grouped to a single
-      county-year mean:
-    </p>
-    <pre><code>SELECT
-    county_fips,
-    year,
-    avg(arithmetic_mean)  AS pm25_annual_mean,
-    count(*)              AS station_count,
-    avg(obs_pct)          AS avg_obs_pct
-FROM stg_epa_pm25
-GROUP BY county_fips, year</code></pre>
+    <details class="code-section" open>
+      <summary><div class="code-label label-sql">dbt/models/intermediate/int_places_epa_join.sql</div><span class="toggle-icon">▼</span></summary>
+      <pre><code><span class="kw">with</span> places <span class="kw">as</span> (
+    <span class="kw">select</span> * <span class="kw">from</span> <span class="ref">{{ ref('stg_places_county') }}</span>
+),
 
-    <div class="note-box">
-      <strong>Note:</strong> This CTE aggregates across all three parameters (PM2.5, Ozone, NO2)
-      unless filtered. The mart currently uses <code>pm25_annual_mean</code> as the primary
-      exposure. If you need parameter-specific county means, add a
-      <code>WHERE parameter_code = 88101</code> filter before aggregating.
+pm25_county_year <span class="kw">as</span> (
+    <span class="kw">select</span>
+        <span class="cm">-- Collapse station-level rows to one row per county × year</span>
+        county_fips,
+        year,
+        <span class="fn">avg</span>(arithmetic_mean)   <span class="kw">as</span> pm25_annual_mean,
+        <span class="fn">count</span>(*)               <span class="kw">as</span> station_count,
+        <span class="fn">avg</span>(obs_pct)           <span class="kw">as</span> avg_obs_pct
+
+    <span class="kw">from</span> <span class="ref">{{ ref('stg_epa_pm25') }}</span>
+    <span class="kw">group by</span> county_fips, year
+),
+
+joined <span class="kw">as</span> (
+    <span class="kw">select</span>
+        p.*,
+        e.pm25_annual_mean,
+        e.station_count                                          <span class="kw">as</span> pm25_station_count,
+        e.avg_obs_pct                                           <span class="kw">as</span> pm25_avg_coverage,
+        <span class="cm">-- Flag counties with no matching EPA monitor</span>
+        <span class="kw">case when</span> e.county_fips <span class="kw">is null then</span> true <span class="kw">else</span> false <span class="kw">end</span>  <span class="kw">as</span> missing_pm25
+
+    <span class="kw">from</span> places p
+    <span class="kw">left join</span> pm25_county_year e
+        <span class="kw">on</span>  p.county_fips = e.county_fips
+        <span class="kw">and</span> p.year        = e.year
+)
+
+<span class="kw">select</span> * <span class="kw">from</span> joined</code></pre>
+    </details>
+
+    <div class="warn-box">
+      <strong>PM2.5 coverage:</strong> Only 27.6% of county-year rows have a matched PM2.5 value.
+      Not every county has an EPA monitoring station — rural and frontier counties are
+      disproportionately unmonitored. The <code>missing_pm25</code> flag carries forward to the
+      mart. Treat <code>NULL</code> as "no data," not zero.
     </div>
 
-    <h3>Step 2 — Left join to PLACES</h3>
-    <p>
-      PLACES is the left table. EPA county-year means are joined on
-      <code>county_fips + year</code>. Counties with no EPA monitor coverage
-      keep their PLACES rows and receive <code>NULL</code> for PM2.5 columns;
-      the <code>missing_pm25</code> flag is set to <code>TRUE</code> for these rows.
-    </p>
-    <pre><code>LEFT JOIN pm25_county_year e
-ON  p.county_fips = e.county_fips
-AND p.year        = e.year</code></pre>
-
-    <h3>Columns added by this layer</h3>
+    <h3>Columns added by this step</h3>
     <div class="pill-list">
       <span class="pill added">pm25_annual_mean</span>
       <span class="pill added">pm25_station_count</span>
       <span class="pill added">pm25_avg_coverage</span>
       <span class="pill added">missing_pm25 (boolean)</span>
     </div>
-
-    <div class="warn-box">
-      <strong>Coverage note:</strong> Only 27.6% of county-year rows in the mart have PM2.5
-      data. Not every county has an EPA monitoring station — rural and frontier counties are
-      disproportionately unmonitored. The <code>missing_pm25</code> flag is the correct way
-      to handle this in analysis; do not treat <code>NULL</code> PM2.5 as zero.
-    </div>
   </section>
 
-  <!-- ── Mart ──────────────────────────────────────────────────────────────── -->
-
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
   <section id="mart">
     <div class="layer-header">
-      <span class="layer-tag tag-mart">Mart</span>
+      <span class="layer-tag tag-mart">Step 6 · Mart</span>
       <h2>mart_epi_analysis</h2>
     </div>
-    <p class="schema-label">
-      <span class="filepath">dbt/models/marts/mart_epi_analysis.sql</span>
-      &nbsp;·&nbsp; materialized as <strong>table</strong>
-    </p>
+    <p class="schema-label">dbt/models/marts/mart_epi_analysis.sql · materialized as table</p>
 
-    <p>
-      Pivots the long intermediate table into a single wide row per county × year. Each health
-      measure becomes its own column. This is the table consumed by both the Quarto report and
-      the Shiny dashboard.
-    </p>
+    <p>Pivots the long intermediate model into a single wide row per county × year using conditional aggregation. This is the final table — consumed directly by the Quarto report and Shiny dashboard.</p>
 
     <div class="stat-row">
       <div class="stat"><div class="stat-val">297,685</div><div class="stat-lbl">Rows in (long)</div></div>
       <div class="stat"><div class="stat-val">15,444</div><div class="stat-lbl">Rows out (wide)</div></div>
       <div class="stat"><div class="stat-val">33</div><div class="stat-lbl">Output columns</div></div>
-      <div class="stat"><div class="stat-val">27.6%</div><div class="stat-lbl">Counties with PM2.5</div></div>
     </div>
 
-    <h3>Pivot pattern</h3>
-    <p>
-      The long-to-wide transformation uses conditional aggregation on <code>measure_id</code>.
-      Each outcome column is a <code>MAX(CASE WHEN ...)</code> expression:
-    </p>
-    <pre><code>max(case when measure_id = 'OBESITY'   then data_value end) as obesity_pct,
-max(case when measure_id = 'DIABETES'  then data_value end) as diabetes_pct,
-max(case when measure_id = 'CASTHMA'   then data_value end) as asthma_pct,
--- ...
-GROUP BY county_fips, state_abbr, state_name, county_name, year,
-         population_count, pm25_annual_mean, pm25_station_count,
-         pm25_avg_coverage, missing_pm25</code></pre>
+    <details class="code-section" open>
+      <summary><div class="code-label label-sql">dbt/models/marts/mart_epi_analysis.sql</div><span class="toggle-icon">▼</span></summary>
+      <pre><code><span class="kw">with</span> base <span class="kw">as</span> (
+    <span class="kw">select</span> * <span class="kw">from</span> <span class="ref">{{ ref('int_places_epa_join') }}</span>
+),
 
-    <h3>Output columns</h3>
-    <div class="two-col">
-      <div class="col-box">
-        <h4>Dimensions</h4>
-        <div class="pill-list">
-          <span class="pill">county_fips</span>
-          <span class="pill">state_abbr</span>
-          <span class="pill">state_name</span>
-          <span class="pill">county_name</span>
-          <span class="pill">year</span>
-          <span class="pill">population_count</span>
-        </div>
-        <h4 style="margin-top:14px">PM2.5 Exposure</h4>
-        <div class="pill-list">
-          <span class="pill">pm25_annual_mean</span>
-          <span class="pill">pm25_station_count</span>
-          <span class="pill">pm25_avg_coverage</span>
-          <span class="pill">missing_pm25</span>
-        </div>
-      </div>
-      <div class="col-box">
-        <h4>Health outcomes (% prevalence)</h4>
-        <div class="pill-list">
-          <span class="pill">obesity_pct</span>
-          <span class="pill">diabetes_pct</span>
-          <span class="pill">chd_pct</span>
-          <span class="pill">stroke_pct</span>
-          <span class="pill">copd_pct</span>
-          <span class="pill">asthma_pct</span>
-          <span class="pill">cancer_pct</span>
-          <span class="pill">depression_pct</span>
-          <span class="pill">high_cholesterol_pct</span>
-          <span class="pill">high_bp_pct</span>
-        </div>
-        <h4 style="margin-top:14px">Risk factors &amp; social determinants</h4>
-        <div class="pill-list">
-          <span class="pill">smoking_pct</span>
-          <span class="pill">binge_drinking_pct</span>
-          <span class="pill">physical_inactivity_pct</span>
-          <span class="pill">short_sleep_pct</span>
-          <span class="pill">no_insurance_pct</span>
-          <span class="pill">food_insecurity_pct</span>
-          <span class="pill">mental_distress_pct</span>
-        </div>
-        <h4 style="margin-top:14px">Confidence intervals</h4>
-        <div class="pill-list">
-          <span class="pill">asthma_ci_low / ci_high</span>
-          <span class="pill">copd_ci_low / ci_high</span>
-          <span class="pill">chd_ci_low / ci_high</span>
-        </div>
-      </div>
-    </div>
+pivoted <span class="kw">as</span> (
+    <span class="kw">select</span>
+
+        <span class="cm">-- Dimensions (group-by keys)</span>
+        county_fips,
+        state_abbr,
+        state_name,
+        county_name,
+        year,
+        <span class="fn">max</span>(population_count)        <span class="kw">as</span> population_count,
+
+        <span class="cm">-- PM2.5 exposure (aggregated in intermediate, carried forward here)</span>
+        <span class="fn">max</span>(pm25_annual_mean)         <span class="kw">as</span> pm25_annual_mean,
+        <span class="fn">max</span>(pm25_station_count)       <span class="kw">as</span> pm25_station_count,
+        <span class="fn">max</span>(pm25_avg_coverage)        <span class="kw">as</span> pm25_avg_coverage,
+        <span class="fn">bool_or</span>(missing_pm25)         <span class="kw">as</span> missing_pm25,
+
+        <span class="cm">-- Health outcomes (pivoted from long measure rows)</span>
+        <span class="fn">max</span>(<span class="kw">case when</span> measure_id = <span class="str">'OBESITY'</span>     <span class="kw">then</span> data_value <span class="kw">end</span>)  <span class="kw">as</span> obesity_pct,
+        <span class="fn">max</span>(<span class="kw">case when</span> measure_id = <span class="str">'DIABETES'</span>    <span class="kw">then</span> data_value <span class="kw">end</span>)  <span class="kw">as</span> diabetes_pct,
+        <span class="fn">max</span>(<span class="kw">case when</span> measure_id = <span class="str">'CHD'</span>         <span class="kw">then</span> data_value <span class="kw">end</span>)  <span class="kw">as</span> chd_pct,
+        <span class="fn">max</span>(<span class="kw">case when</span> measure_id = <span class="str">'STROKE'</span>      <span class="kw">then</span> data_value <span class="kw">end</span>)  <span class="kw">as</span> stroke_pct,
+        <span class="fn">max</span>(<span class="kw">case when</span> measure_id = <span class="str">'COPD'</span>        <span class="kw">then</span> data_value <span class="kw">end</span>)  <span class="kw">as</span> copd_pct,
+        <span class="fn">max</span>(<span class="kw">case when</span> measure_id = <span class="str">'CASTHMA'</span>     <span class="kw">then</span> data_value <span class="kw">end</span>)  <span class="kw">as</span> asthma_pct,
+        <span class="fn">max</span>(<span class="kw">case when</span> measure_id = <span class="str">'CANCER'</span>      <span class="kw">then</span> data_value <span class="kw">end</span>)  <span class="kw">as</span> cancer_pct,
+        <span class="fn">max</span>(<span class="kw">case when</span> measure_id = <span class="str">'DEPRESSION'</span>  <span class="kw">then</span> data_value <span class="kw">end</span>)  <span class="kw">as</span> depression_pct,
+        <span class="fn">max</span>(<span class="kw">case when</span> measure_id = <span class="str">'HIGHCHOL'</span>    <span class="kw">then</span> data_value <span class="kw">end</span>)  <span class="kw">as</span> high_cholesterol_pct,
+        <span class="fn">max</span>(<span class="kw">case when</span> measure_id = <span class="str">'BPHIGH'</span>      <span class="kw">then</span> data_value <span class="kw">end</span>)  <span class="kw">as</span> high_bp_pct,
+
+        <span class="cm">-- Behavioral risk factors</span>
+        <span class="fn">max</span>(<span class="kw">case when</span> measure_id = <span class="str">'CSMOKING'</span>    <span class="kw">then</span> data_value <span class="kw">end</span>)  <span class="kw">as</span> smoking_pct,
+        <span class="fn">max</span>(<span class="kw">case when</span> measure_id = <span class="str">'BINGE'</span>       <span class="kw">then</span> data_value <span class="kw">end</span>)  <span class="kw">as</span> binge_drinking_pct,
+        <span class="fn">max</span>(<span class="kw">case when</span> measure_id = <span class="str">'LPA'</span>         <span class="kw">then</span> data_value <span class="kw">end</span>)  <span class="kw">as</span> physical_inactivity_pct,
+        <span class="fn">max</span>(<span class="kw">case when</span> measure_id = <span class="str">'SLEEP'</span>       <span class="kw">then</span> data_value <span class="kw">end</span>)  <span class="kw">as</span> short_sleep_pct,
+
+        <span class="cm">-- Social determinants</span>
+        <span class="fn">max</span>(<span class="kw">case when</span> measure_id = <span class="str">'ACCESS2'</span>     <span class="kw">then</span> data_value <span class="kw">end</span>)  <span class="kw">as</span> no_insurance_pct,
+        <span class="fn">max</span>(<span class="kw">case when</span> measure_id = <span class="str">'FOODINSECU'</span>  <span class="kw">then</span> data_value <span class="kw">end</span>)  <span class="kw">as</span> food_insecurity_pct,
+        <span class="fn">max</span>(<span class="kw">case when</span> measure_id = <span class="str">'MHLTH'</span>       <span class="kw">then</span> data_value <span class="kw">end</span>)  <span class="kw">as</span> mental_distress_pct,
+
+        <span class="cm">-- Confidence intervals for primary exposure-outcome pairs</span>
+        <span class="fn">max</span>(<span class="kw">case when</span> measure_id = <span class="str">'CASTHMA'</span>     <span class="kw">then</span> ci_low  <span class="kw">end</span>)  <span class="kw">as</span> asthma_ci_low,
+        <span class="fn">max</span>(<span class="kw">case when</span> measure_id = <span class="str">'CASTHMA'</span>     <span class="kw">then</span> ci_high <span class="kw">end</span>)  <span class="kw">as</span> asthma_ci_high,
+        <span class="fn">max</span>(<span class="kw">case when</span> measure_id = <span class="str">'COPD'</span>        <span class="kw">then</span> ci_low  <span class="kw">end</span>)  <span class="kw">as</span> copd_ci_low,
+        <span class="fn">max</span>(<span class="kw">case when</span> measure_id = <span class="str">'COPD'</span>        <span class="kw">then</span> ci_high <span class="kw">end</span>)  <span class="kw">as</span> copd_ci_high,
+        <span class="fn">max</span>(<span class="kw">case when</span> measure_id = <span class="str">'CHD'</span>         <span class="kw">then</span> ci_low  <span class="kw">end</span>)  <span class="kw">as</span> chd_ci_low,
+        <span class="fn">max</span>(<span class="kw">case when</span> measure_id = <span class="str">'CHD'</span>         <span class="kw">then</span> ci_high <span class="kw">end</span>)  <span class="kw">as</span> chd_ci_high
+
+    <span class="kw">from</span> base
+    <span class="kw">group by</span> county_fips, state_abbr, state_name, county_name, year
+)
+
+<span class="kw">select</span> * <span class="kw">from</span> pivoted
+<span class="kw">order by</span> state_abbr, county_name, year</code></pre>
+    </details>
   </section>
 
-  <!-- ── Year Coverage ─────────────────────────────────────────────────────── -->
-
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
   <section id="year-coverage">
     <h2>Year Coverage</h2>
-    <p>
-      CDC PLACES and EPA AQS have different release cadences. Understanding which measures
-      are available in which years is essential for exposure-outcome analysis.
-    </p>
-
-    <h3>PLACES release cycle</h3>
-    <p>
-      CDC PLACES alternates which measures it publishes each release cycle.
-      Core chronic disease measures appear in odd years; preventive screening
-      measures appear in even years.
-    </p>
+    <p>CDC PLACES alternates which measures it publishes each release cycle. Core chronic disease measures appear in odd years; preventive screening measures appear in even years. EPA PM2.5 is available every year.</p>
 
     <div class="year-grid">
       <div class="yg-header"></div>
@@ -682,21 +756,21 @@ GROUP BY county_fips, state_abbr, state_name, county_name, year,
       <div class="yg-header">2022</div>
       <div class="yg-header">2023</div>
 
-      <div class="yg-label">PLACES core <br><small style="font-weight:400;color:#718096">OBESITY, DIABETES, CHD, STROKE, COPD, CASTHMA, CSMOKING, BPHIGH…</small></div>
-      <div class="yg-cell yg-full">3,122 counties</div>
+      <div class="yg-label">PLACES core<br><small style="font-weight:400;color:#718096">OBESITY, DIABETES, CHD, COPD, CASTHMA, CSMOKING…</small></div>
+      <div class="yg-cell yg-full">3,122 counties<br>22 measures</div>
       <div class="yg-cell yg-empty">—</div>
-      <div class="yg-cell yg-full">3,077 counties</div>
+      <div class="yg-cell yg-full">3,077 counties<br>29 measures</div>
       <div class="yg-cell yg-empty">—</div>
-      <div class="yg-cell yg-full">2,957 counties</div>
+      <div class="yg-cell yg-full">2,957 counties<br>35 measures</div>
 
-      <div class="yg-label">PLACES screening <br><small style="font-weight:400;color:#718096">DENTAL, SLEEP, MAMMOUSE, COLON_SCREEN, TEETHLOST, CERVICAL…</small></div>
+      <div class="yg-label">PLACES screening<br><small style="font-weight:400;color:#718096">DENTAL, SLEEP, MAMMOUSE, COLON_SCREEN…</small></div>
       <div class="yg-cell yg-empty">—</div>
-      <div class="yg-cell yg-screen">3,144 counties</div>
+      <div class="yg-cell yg-screen">3,144 counties<br>8 measures</div>
       <div class="yg-cell yg-empty">—</div>
-      <div class="yg-cell yg-screen">3,144 counties</div>
+      <div class="yg-cell yg-screen">3,144 counties<br>5 measures</div>
       <div class="yg-cell yg-empty">—</div>
 
-      <div class="yg-label">EPA PM2.5 <br><small style="font-weight:400;color:#718096">Annual station means (all years)</small></div>
+      <div class="yg-label">EPA PM2.5<br><small style="font-weight:400;color:#718096">Station-level annual means</small></div>
       <div class="yg-cell yg-annual">~885 counties</div>
       <div class="yg-cell yg-annual">~875 counties</div>
       <div class="yg-cell yg-annual">~891 counties</div>
@@ -705,29 +779,10 @@ GROUP BY county_fips, state_abbr, state_name, county_name, year,
     </div>
 
     <div class="info-box">
-      <strong>Clean join years for exposure-outcome analysis:</strong> 2019, 2021, and 2023 —
-      the three years where core PLACES chronic disease measures and EPA PM2.5 both exist.
+      <strong>Clean join years for exposure-outcome analysis: 2019, 2021, 2023.</strong>
+      These are the only years where core PLACES chronic disease measures and EPA PM2.5 both exist.
       In the mart, even-year rows will have <code>NULL</code> for all core outcome columns
-      (obesity_pct, diabetes_pct, etc.) and populated screening columns (short_sleep_pct, etc.)
-      instead.
-    </div>
-
-    <h3>Measure count by year in raw.places_county</h3>
-    <table>
-      <thead><tr><th>Year</th><th>Distinct measures</th><th>Counties</th><th>Type</th></tr></thead>
-      <tbody>
-        <tr><td>2019</td><td>22</td><td>3,122</td><td>Core chronic disease</td></tr>
-        <tr><td>2020</td><td>8</td><td>3,144</td><td>Preventive screenings</td></tr>
-        <tr><td>2021</td><td>29</td><td>3,077</td><td>Core + expanded</td></tr>
-        <tr><td>2022</td><td>5</td><td>3,144</td><td>Preventive screenings</td></tr>
-        <tr><td>2023</td><td>35</td><td>2,957</td><td>Core + expanded + social determinants</td></tr>
-      </tbody>
-    </table>
-
-    <div class="note-box">
-      <strong>2023 has the most measures (35)</strong> including newer social determinant
-      indicators (FOODINSECU, HOUSINSECU, LONELINESS, LACKTRPT) that only appeared starting
-      in the 2023 release, and only for ~2,300 counties rather than the full ~3,000.
+      (obesity_pct, chd_pct, etc.) and populated values only in screening columns (short_sleep_pct, etc.).
     </div>
   </section>
 
