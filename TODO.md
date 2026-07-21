@@ -2,6 +2,22 @@
 
 Check off items as completed. Resume from wherever this list is when returning.
 
+## Architecture decision (pending, 2026-07-21)
+
+Planning to switch ingestion from R (DBI/RPostgres, hand-rolled idempotency/schema-drift
+logic in load_places.R / load_epa_pm25.R) to **dlt (Python)**, and the warehouse from
+Postgres to **BigQuery**. Reasoning: R + PostgreSQL are already well-demonstrated
+elsewhere in the portfolio (WLM, restaurant analytics). Python, dlt, and BigQuery are
+real skill gaps that keep showing up as blockers in job fit assessments — this project
+is a good candidate to close them, since CDC PLACES (paginated REST/Socrata API) and
+EPA PM2.5 (static per-year file drops) map cleanly onto dlt's REST source and
+filesystem source respectively, and the planned SVI/RUCC sources add a third shape.
+dbt layer (staging/intermediate/mart) and Quarto/Shiny consumption layer stay
+conceptually the same, just pointed at BigQuery instead of Postgres.
+
+Not started yet — do this as part of finishing the pipeline (see Setup/Data sections
+below), not as a bolt-on after it's already working on Postgres.
+
 ## Setup
 - [ ] CREATE DATABASE epi_pipeline on lhrc-db RDS server
 - [ ] Create `inventory` user access to epi_pipeline database (or use existing creds)
